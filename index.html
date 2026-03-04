@@ -1,0 +1,1245 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BWE Tooth Management System</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+  :root {
+    --bg: #0a0e1a;
+    --bg2: #111827;
+    --bg3: #1a2235;
+    --border: #2a3550;
+    --accent: #f59e0b;
+    --accent2: #10b981;
+    --accent3: #3b82f6;
+    --danger: #ef4444;
+    --text: #e2e8f0;
+    --text2: #94a3b8;
+    --text3: #64748b;
+    --ith: #3b82f6;
+    --sv: #10b981;
+    --weld: #f97316;
+    --bolt: #a78bfa;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 14px;
+  }
+
+  /* ==================== HEADER ==================== */
+  header {
+    background: linear-gradient(135deg, #0a0e1a 0%, #1a2235 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    height: 60px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .logo-icon { font-size: 24px; }
+  .nav-tabs {
+    display: flex;
+    gap: 4px;
+    margin-left: auto;
+  }
+  .nav-tab {
+    padding: 6px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text2);
+    border: none;
+    background: transparent;
+    font-family: 'Sarabun', sans-serif;
+  }
+  .nav-tab:hover { background: var(--bg3); color: var(--text); }
+  .nav-tab.active { background: var(--accent); color: #000; font-weight: 700; }
+
+  /* ==================== LAYOUT ==================== */
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ==================== CARDS ==================== */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+  }
+  .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* ==================== GRID ==================== */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+
+  /* ==================== STAT CARDS ==================== */
+  .stat-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 20px; }
+  .stat-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+  .stat-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+  .stat-value { font-size: 28px; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .stat-sub { font-size: 11px; color: var(--text3); margin-top: 4px; }
+  .c-amber { color: var(--accent); }
+  .c-green { color: var(--accent2); }
+  .c-blue { color: var(--accent3); }
+  .c-orange { color: var(--weld); }
+  .c-purple { color: var(--bolt); }
+  .c-red { color: var(--danger); }
+
+  /* ==================== FORMS ==================== */
+  .form-group { margin-bottom: 14px; }
+  label { display: block; font-size: 12px; color: var(--text2); margin-bottom: 5px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+  input, select, textarea {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+  select option { background: var(--bg2); }
+
+  /* ==================== BUTTONS ==================== */
+  .btn {
+    padding: 8px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: #000; }
+  .btn-primary:hover { background: #d97706; }
+  .btn-success { background: var(--accent2); color: #000; }
+  .btn-success:hover { background: #059669; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { background: #dc2626; }
+  .btn-ghost { background: transparent; color: var(--text2); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--bg3); color: var(--text); }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+
+  /* ==================== TABLE ==================== */
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    background: var(--bg3);
+    padding: 10px 12px;
+    text-align: left;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    color: var(--text3);
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid rgba(42,53,80,0.5);
+    color: var(--text2);
+    font-size: 13px;
+    vertical-align: middle;
+  }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  tr:last-child td { border-bottom: none; }
+
+  /* ==================== BADGES ==================== */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-size: 11px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .badge-ith { background: rgba(59,130,246,0.15); color: var(--ith); border: 1px solid rgba(59,130,246,0.3); }
+  .badge-sv { background: rgba(16,185,129,0.15); color: var(--sv); border: 1px solid rgba(16,185,129,0.3); }
+  .badge-weld { background: rgba(249,115,22,0.15); color: var(--weld); border: 1px solid rgba(249,115,22,0.3); }
+  .badge-bolt { background: rgba(167,139,250,0.15); color: var(--bolt); border: 1px solid rgba(167,139,250,0.3); }
+  .badge-in { background: rgba(16,185,129,0.15); color: var(--sv); border: 1px solid rgba(16,185,129,0.3); }
+  .badge-out { background: rgba(239,68,68,0.15); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
+
+  /* ==================== BUCKET WHEEL VISUAL ==================== */
+  .bw-container {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .bw-select-area { flex: 0 0 220px; }
+  .bucket-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    flex: 1;
+  }
+  .bucket-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .bucket-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .bucket-card.selected { border-color: var(--accent); background: rgba(245,158,11,0.1); }
+  .bucket-num { font-size: 10px; color: var(--text3); margin-bottom: 4px; font-weight: 600; }
+  .tooth-row { display: flex; gap: 2px; flex-wrap: wrap; }
+  .tooth-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    font-size: 8px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #000;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .tooth-ith { background: var(--ith); }
+  .tooth-sv { background: var(--sv); }
+  .tooth-empty { background: var(--bg); border: 1px dashed var(--text3); color: var(--text3) !important; }
+
+  /* ==================== DETAIL PANEL ==================== */
+  .detail-panel {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 12px;
+  }
+  .tooth-table-small { width: 100%; }
+  .tooth-table-small th, .tooth-table-small td { padding: 6px 8px; font-size: 12px; }
+
+  /* ==================== STOCK INDICATOR ==================== */
+  .stock-bar {
+    height: 6px;
+    background: var(--bg3);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 6px;
+  }
+  .stock-fill {
+    height: 100%;
+    border-radius: 3px;
+    background: linear-gradient(90deg, var(--accent2), var(--accent));
+    transition: width 0.5s;
+  }
+
+  /* ==================== MODAL ==================== */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    width: 600px;
+    max-width: 95vw;
+    max-height: 90vh;
+    overflow-y: auto;
+    position: relative;
+  }
+  .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; color: var(--accent); }
+  .modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--bg3);
+    border: none;
+    color: var(--text2);
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    border-radius: 6px;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-close:hover { color: var(--text); background: var(--border); }
+
+  /* ==================== CHECKBOX GROUP ==================== */
+  .check-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px;
+    background: var(--bg3);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .check-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 6px 8px;
+    border-radius: 6px;
+    transition: background 0.15s;
+  }
+  .check-item:hover { background: rgba(255,255,255,0.05); }
+  .check-item input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); }
+  .check-label { color: var(--text); font-size: 14px; }
+
+  /* ==================== MONTHLY SUMMARY ==================== */
+  .month-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .month-card {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .month-card:hover { border-color: var(--accent); }
+  .month-name { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+  .month-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+  .month-stat { font-size: 11px; color: var(--text3); }
+  .month-stat span { color: var(--text2); font-weight: 600; }
+
+  .page-title {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    color: var(--text);
+  }
+  .page-sub { font-size: 13px; color: var(--text3); margin-bottom: 20px; }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px;
+    color: var(--text3);
+  }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+
+  .section-sep { height: 1px; background: var(--border); margin: 20px 0; }
+
+  .flex-gap { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+  .tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .tag-bwe1 { background: rgba(245,158,11,0.15); color: var(--accent); }
+  .tag-bwe2 { background: rgba(59,130,246,0.15); color: var(--ith); }
+
+  .alert {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    font-size: 13px;
+  }
+  .alert-warn { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.3); color: var(--accent); }
+  .alert-success { background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.3); color: var(--accent2); }
+
+  /* ==================== FILTER BAR ==================== */
+  .filter-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .filter-bar select, .filter-bar input { width: auto; min-width: 140px; }
+  .filter-bar .sep { color: var(--text3); }
+
+  /* scroll */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <span class="logo-icon">⚙️</span>
+    BWE Tooth Management
+  </div>
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('dashboard')">📊 Dashboard</button>
+    <button class="nav-tab" onclick="showPage('record')">📝 บันทึกซ่อม</button>
+    <button class="nav-tab" onclick="showPage('wheel')">🔵 สถานะรายฟัน</button>
+    <button class="nav-tab" onclick="showPage('stock')">📦 คลังฟัน/Bolt</button>
+    <button class="nav-tab" onclick="showPage('monthly')">📅 สรุปรายเดือน</button>
+  </nav>
+</header>
+
+<!-- ===================== DASHBOARD PAGE ===================== -->
+<div id="page-dashboard" class="page active container">
+  <div class="page-title">🏠 Dashboard ภาพรวมระบบ</div>
+  <div class="page-sub">สรุปข้อมูลการซ่อมบำรุงฟัน Bucket Wheel Excavator ทั้งหมด</div>
+
+  <div class="stat-grid" id="stat-grid"></div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📈 การซ่อมรายเดือน (ปีนี้)</div>
+      </div>
+      <div id="chart-monthly" style="min-height:180px"></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">⚡ บันทึกล่าสุด 10 รายการ</div>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>วันที่</th><th>BWE</th><th>ตำแหน่ง</th><th>ประเภท</th></tr></thead>
+          <tbody id="recent-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-sep"></div>
+  <div class="grid-3">
+    <div class="card">
+      <div class="card-header"><div class="card-title">🦷 ประเภทงานซ่อม BWE1</div></div>
+      <div id="bwe1-donut" style="min-height:140px"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">🦷 ประเภทงานซ่อม BWE2</div></div>
+      <div id="bwe2-donut" style="min-height:140px"></div>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">📦 สต็อกฟัน (รวม)</div></div>
+      <div id="stock-summary" style="padding:8px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== RECORD PAGE ===================== -->
+<div id="page-record" class="page container">
+  <div class="page-title">📝 บันทึกงานซ่อมฟัน</div>
+  <div class="page-sub">บันทึกการเปลี่ยนฟัน, พอกฟัน, และเปลี่ยน Bolt</div>
+
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-title" style="margin-bottom:16px">📋 กรอกข้อมูลงานซ่อม</div>
+
+      <div class="form-group">
+        <label>วันที่ดำเนินการ</label>
+        <input type="date" id="rec-date">
+      </div>
+      <div class="form-group">
+        <label>เครื่องจักร</label>
+        <select id="rec-bwe">
+          <option value="BWE1">Bucket Wheel Excavator No.1</option>
+          <option value="BWE2">Bucket Wheel Excavator No.2</option>
+        </select>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label>บุ้งกี๋ (Bucket No.)</label>
+          <select id="rec-bucket">
+            <option value="">-- เลือก --</option>
+            <script>for(let i=1;i<=14;i++) document.write(`<option value="${i}">${i}</option>`);</script>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>ตำแหน่งฟัน</label>
+          <select id="rec-tooth">
+            <option value="">-- เลือก --</option>
+            <option value="A">A</option><option value="B">B</option>
+            <option value="C">C</option><option value="D">D</option>
+            <option value="E">E</option><option value="F">F</option>
+            <option value="G">G</option><option value="H">H</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>ประเภทงาน (เลือกได้หลายรายการ)</label>
+        <div class="check-group" id="work-types">
+          <label class="check-item">
+            <input type="checkbox" value="เปลี่ยนฟันใหม่ ITH">
+            <span class="check-label">🔵 เปลี่ยนฟันใหม่ <strong>ITH</strong></span>
+          </label>
+          <label class="check-item">
+            <input type="checkbox" value="เปลี่ยนฟันใหม่ SV">
+            <span class="check-label">🟢 เปลี่ยนฟันใหม่</span>
+          </label>
+          <label class="check-item">
+            <input type="checkbox" value="เชื่อมพอก">
+            <span class="check-label">🟠 เชื่อมพอก (Re-Hard Facing)</span>
+          </label>
+          <label class="check-item">
+            <input type="checkbox" value="เปลี่ยน Bolt ตำแหน่ง 1">
+            <span class="check-label">🟣 เปลี่ยน Bolt ตำแหน่ง 1</span>
+          </label>
+          <label class="check-item">
+            <input type="checkbox" value="เปลี่ยน Bolt ตำแหน่ง 2">
+            <span class="check-label">🟣 เปลี่ยน Bolt ตำแหน่ง 2</span>
+          </label>
+          <label class="check-item">
+            <input type="checkbox" value="เปลี่ยน Bolt ตำแหน่ง 3">
+            <span class="check-label">🟣 เปลี่ยน Bolt ตำแหน่ง 3</span>
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>SMU (ชั่วโมงใช้งาน)</label>
+        <input type="number" id="rec-smu" placeholder="เช่น 35822">
+      </div>
+      <div class="form-group">
+        <label>หมายเหตุ</label>
+        <textarea id="rec-note" rows="2" placeholder="บันทึกเพิ่มเติม..."></textarea>
+      </div>
+
+      <div class="flex-gap">
+        <button class="btn btn-primary" onclick="addRecord()">💾 บันทึกข้อมูล</button>
+        <button class="btn btn-ghost" onclick="clearRecordForm()">🔄 ล้างฟอร์ม</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">📋 ประวัติงานซ่อมทั้งหมด</div>
+        <div class="flex-gap">
+          <input type="text" id="search-record" style="width:160px" placeholder="🔍 ค้นหา..." oninput="renderRecordTable()">
+        </div>
+      </div>
+      <div class="filter-bar">
+        <select id="filter-bwe" onchange="renderRecordTable()">
+          <option value="">ทุก BWE</option>
+          <option value="BWE1">BWE No.1</option>
+          <option value="BWE2">BWE No.2</option>
+        </select>
+        <select id="filter-type" onchange="renderRecordTable()">
+          <option value="">ทุกประเภท</option>
+          <option value="เปลี่ยนฟันใหม่ ITH">เปลี่ยนฟัน ITH</option>
+          <option value="เปลี่ยนฟันใหม่ SV">เปลี่ยนฟันใหม่</option>
+          <option value="เชื่อมพอก">เชื่อมพอก</option>
+          <option value="เปลี่ยน Bolt">เปลี่ยน Bolt</option>
+        </select>
+      </div>
+      <div class="table-wrap" style="max-height:520px;overflow-y:auto">
+        <table>
+          <thead><tr><th>วันที่</th><th>BWE</th><th>บุ้งกี๋-ฟัน</th><th>งาน</th><th>SMU</th><th></th></tr></thead>
+          <tbody id="record-tbody"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:10px;text-align:right">
+        <span id="record-count" style="font-size:12px;color:var(--text3)"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== WHEEL STATUS PAGE ===================== -->
+<div id="page-wheel" class="page container">
+  <div class="page-title">🔵 สถานะฟันปัจจุบัน (Visual)</div>
+  <div class="page-sub">แสดงประเภทฟันที่ติดตั้งในแต่ละตำแหน่ง</div>
+
+  <div class="flex-gap" style="margin-bottom:16px">
+    <button class="btn btn-ghost btn-sm" onclick="setActiveBWE('BWE1')">BWE No.1</button>
+    <button class="btn btn-ghost btn-sm" onclick="setActiveBWE('BWE2')">BWE No.2</button>
+    <div style="margin-left:auto;display:flex;gap:12px;font-size:12px;align-items:center">
+      <span class="tooth-dot tooth-ith" style="width:20px;height:20px;display:inline-flex">I</span> ITH &nbsp;
+      <span class="tooth-dot tooth-sv" style="width:20px;height:20px;display:inline-flex">S</span> New &nbsp;
+      <span class="tooth-dot tooth-empty" style="width:20px;height:20px;display:inline-flex">-</span> ว่าง
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title" id="wheel-bwe-title" style="margin-bottom:16px">BWE No.1</div>
+    <div class="bucket-grid" id="bucket-grid"></div>
+  </div>
+
+  <div id="tooth-detail-panel" class="detail-panel" style="display:none">
+    <div class="card-header" style="margin-bottom:12px">
+      <div class="card-title" id="detail-title">รายละเอียด</div>
+    </div>
+    <div id="detail-content"></div>
+  </div>
+</div>
+
+<!-- ===================== STOCK PAGE ===================== -->
+<div id="page-stock" class="page container">
+  <div class="page-title">📦 คลังฟัน & Bolt</div>
+  <div class="page-sub">จัดการรับเข้า-เบิกใช้ ฟันและ Bolt</div>
+
+  <div class="grid-2">
+    <!-- Add transaction form -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:16px">➕ บันทึกรับเข้า / เบิกออก</div>
+
+      <div class="form-group">
+        <label>วันที่</label>
+        <input type="date" id="stock-date">
+      </div>
+      <div class="form-group">
+        <label>ประเภทรายการ</label>
+        <select id="stock-type">
+          <option value="in">📥 รับเข้า (In)</option>
+          <option value="out">📤 เบิกออก (Out)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>สินค้า</label>
+        <select id="stock-item">
+          <option value="tooth_ith">ฟัน ITH</option>
+          <option value="tooth_sv">ฟัน New</option>
+          <option value="bolt">Bolt (Set)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>จำนวน</label>
+        <input type="number" id="stock-qty" min="1" placeholder="จำนวน">
+      </div>
+      <div class="form-group">
+        <label>หมายเหตุ</label>
+        <input type="text" id="stock-note" placeholder="แหล่งที่มา / วัตถุประสงค์">
+      </div>
+      <button class="btn btn-primary" onclick="addStockTx()">💾 บันทึก</button>
+    </div>
+
+    <!-- Stock summary -->
+    <div class="card">
+      <div class="card-title" style="margin-bottom:16px">📊 สรุปสต็อกปัจจุบัน</div>
+      <div id="stock-cards"></div>
+    </div>
+  </div>
+
+  <div class="section-sep"></div>
+
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📋 ประวัติรับ/เบิก</div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>วันที่</th><th>ประเภท</th><th>สินค้า</th><th>จำนวน</th><th>หมายเหตุ</th><th></th></tr></thead>
+        <tbody id="stock-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MONTHLY SUMMARY PAGE ===================== -->
+<div id="page-monthly" class="page container">
+  <div class="page-title">📅 สรุปรายเดือน</div>
+  <div class="page-sub">รายงานสรุปงานซ่อมฟัน Bucket Wheel Excavator ประจำเดือน</div>
+
+  <div class="filter-bar" style="margin-bottom:20px">
+    <label style="text-transform:none;font-size:14px;color:var(--text2)">เลือกปี:</label>
+    <select id="month-year" onchange="renderMonthly()">
+      <option value="2025">2025</option>
+      <option value="2026" selected>2026</option>
+    </select>
+    <button class="btn btn-primary btn-sm" onclick="exportMonthly()">⬇️ Export Report</button>
+  </div>
+
+  <div class="month-grid" id="monthly-cards"></div>
+
+  <div class="section-sep"></div>
+
+  <div id="monthly-detail" style="display:none">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title" id="monthly-detail-title"></div>
+        <button class="btn btn-ghost btn-sm" onclick="document.getElementById('monthly-detail').style.display='none'">✕ ปิด</button>
+      </div>
+
+      <div class="grid-3" id="monthly-summary-stats" style="margin-bottom:16px"></div>
+
+      <div class="grid-2">
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px">BWE No.1 - สรุปฟัน</div>
+          <div class="table-wrap">
+            <table id="monthly-bwe1-table">
+              <thead><tr><th>ตำแหน่ง</th><th>เปลี่ยน ITH</th><th>เปลี่ยน New</th><th>พอก</th><th>Bolt</th><th>รวม</th></tr></thead>
+              <tbody id="monthly-bwe1-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px">BWE No.2 - สรุปฟัน</div>
+          <div class="table-wrap">
+            <table id="monthly-bwe2-table">
+              <thead><tr><th>ตำแหน่ง</th><th>เปลี่ยน ITH</th><th>เปลี่ยน New</th><th>พอก</th><th>Bolt</th><th>รวม</th></tr></thead>
+              <tbody id="monthly-bwe2-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-sep"></div>
+      <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px">รายการทั้งหมดในเดือนนี้</div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>วันที่</th><th>BWE</th><th>บุ้งกี๋</th><th>ฟัน</th><th>งาน</th><th>SMU</th></tr></thead>
+          <tbody id="monthly-all-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" style="position:fixed;bottom:24px;right:24px;background:#1e293b;border:1px solid var(--border);border-radius:10px;padding:12px 20px;color:var(--text);font-size:14px;display:none;z-index:300;transition:all 0.3s"></div>
+
+<script>
+// ===================== DATA STORE =====================
+let records = JSON.parse(localStorage.getItem('bwe_records') || '[]');
+let stockTx = JSON.parse(localStorage.getItem('bwe_stock') || '[]');
+
+// Default tooth status per bucket (from real data)
+const defaultToothStatus = {
+  BWE1: { 1:'SV', 2:'ITH', 3:'ITH', 4:'SV', 5:'SV', 6:'SV', 7:'SV', 8:'SV', 9:'SV', 10:'SV', 11:'ITH', 12:'SV', 13:'SV', 14:'SV' },
+  BWE2: { 1:'SV', 2:'SV', 3:'ITH', 4:'SV', 5:'SV', 6:'SV', 7:'SV', 8:'SV', 9:'SV', 10:'SV', 11:'SV', 12:'ITH', 13:'SV', 14:'SV' }
+};
+
+const TOOTH_POSITIONS = ['A','B','C','D','E','F','G','H'];
+const MONTHS_TH = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+const MONTHS_FULL = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+let activeBWE = 'BWE1';
+
+// ===================== UTILS =====================
+function toast(msg, type='info') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display = 'block';
+  t.style.borderColor = type === 'success' ? 'var(--accent2)' : type === 'error' ? 'var(--danger)' : 'var(--border)';
+  t.style.color = type === 'success' ? 'var(--accent2)' : type === 'error' ? 'var(--danger)' : 'var(--text)';
+  setTimeout(() => t.style.display = 'none', 3000);
+}
+
+function save() {
+  localStorage.setItem('bwe_records', JSON.stringify(records));
+  localStorage.setItem('bwe_stock', JSON.stringify(stockTx));
+}
+
+function fmtDate(d) {
+  if (!d) return '-';
+  return new Date(d).toLocaleDateString('th-TH', {day:'2-digit', month:'short', year:'numeric'});
+}
+
+function getWorkTypes(r) {
+  if (!r.workTypes) return [];
+  return Array.isArray(r.workTypes) ? r.workTypes : [r.workTypes];
+}
+
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach(t => {
+    if (t.getAttribute('onclick').includes("'"+id+"'")) t.classList.add('active');
+  });
+  if (id === 'dashboard') renderDashboard();
+  if (id === 'record') renderRecordTable();
+  if (id === 'wheel') renderWheel();
+  if (id === 'stock') renderStock();
+  if (id === 'monthly') renderMonthly();
+}
+
+// ===================== RECORD =====================
+function setTodayDate() {
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('rec-date').value = today;
+  document.getElementById('stock-date').value = today;
+}
+
+function addRecord() {
+  const date = document.getElementById('rec-date').value;
+  const bwe = document.getElementById('rec-bwe').value;
+  const bucket = document.getElementById('rec-bucket').value;
+  const tooth = document.getElementById('rec-tooth').value;
+  const smu = document.getElementById('rec-smu').value;
+  const note = document.getElementById('rec-note').value;
+  const checks = [...document.querySelectorAll('#work-types input:checked')].map(c => c.value);
+
+  if (!date || !bwe || !bucket || !tooth || checks.length === 0) {
+    toast('กรุณากรอกข้อมูลให้ครบถ้วนและเลือกประเภทงานอย่างน้อย 1 รายการ', 'error');
+    return;
+  }
+
+  const rec = {
+    id: Date.now(),
+    date, bwe, bucket, tooth, workTypes: checks, smu: smu || '', note,
+    ts: new Date().toISOString()
+  };
+  records.unshift(rec);
+  save();
+  clearRecordForm();
+  renderRecordTable();
+  toast('✅ บันทึกข้อมูลสำเร็จ', 'success');
+}
+
+function clearRecordForm() {
+  document.getElementById('rec-bucket').value = '';
+  document.getElementById('rec-tooth').value = '';
+  document.getElementById('rec-smu').value = '';
+  document.getElementById('rec-note').value = '';
+  document.querySelectorAll('#work-types input').forEach(c => c.checked = false);
+}
+
+function deleteRecord(id) {
+  if (!confirm('ต้องการลบรายการนี้?')) return;
+  records = records.filter(r => r.id !== id);
+  save();
+  renderRecordTable();
+  toast('ลบแล้ว');
+}
+
+function renderRecordTable() {
+  const search = (document.getElementById('search-record')?.value || '').toLowerCase();
+  const filterBWE = document.getElementById('filter-bwe')?.value || '';
+  const filterType = document.getElementById('filter-type')?.value || '';
+
+  let filtered = records.filter(r => {
+    const txt = `${r.date} ${r.bwe} ${r.bucket} ${r.tooth} ${getWorkTypes(r).join(' ')}`.toLowerCase();
+    if (search && !txt.includes(search)) return false;
+    if (filterBWE && r.bwe !== filterBWE) return false;
+    if (filterType && !getWorkTypes(r).some(t => t.includes(filterType))) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('record-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = filtered.map(r => {
+    const types = getWorkTypes(r);
+    const badges = types.map(t => {
+      if (t.includes('ITH')) return `<span class="badge badge-ith">ITH</span>`;
+      if (t.includes('SV')) return `<span class="badge badge-sv">New</span>`;
+      if (t.includes('พอก')) return `<span class="badge badge-weld">พอก</span>`;
+      if (t.includes('Bolt')) return `<span class="badge badge-bolt">Bolt</span>`;
+      return '';
+    }).filter((v,i,a) => a.indexOf(v) === i).join(' ');
+    return `<tr>
+      <td>${fmtDate(r.date)}</td>
+      <td><span class="tag ${r.bwe === 'BWE1' ? 'tag-bwe1' : 'tag-bwe2'}">${r.bwe}</span></td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px">#${r.bucket}-${r.tooth}</td>
+      <td>${badges}</td>
+      <td style="font-size:11px;color:var(--text3)">${r.smu || '-'}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="deleteRecord(${r.id})" style="color:var(--danger)">🗑</button></td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="6" class="empty-state">ไม่พบข้อมูล</td></tr>`;
+
+  const cnt = document.getElementById('record-count');
+  if (cnt) cnt.textContent = `แสดง ${filtered.length} / ${records.length} รายการ`;
+}
+
+// ===================== STOCK =====================
+function getStockBalance() {
+  const balance = { tooth_ith: 0, tooth_sv: 0, bolt: 0 };
+  stockTx.forEach(t => {
+    const sign = t.type === 'in' ? 1 : -1;
+    balance[t.item] = (balance[t.item] || 0) + sign * t.qty;
+  });
+  return balance;
+}
+
+function addStockTx() {
+  const date = document.getElementById('stock-date').value;
+  const type = document.getElementById('stock-type').value;
+  const item = document.getElementById('stock-item').value;
+  const qty = parseInt(document.getElementById('stock-qty').value);
+  const note = document.getElementById('stock-note').value;
+
+  if (!date || !qty || qty < 1) {
+    toast('กรุณากรอกข้อมูลให้ครบ', 'error');
+    return;
+  }
+  stockTx.unshift({ id: Date.now(), date, type, item, qty, note, ts: new Date().toISOString() });
+  save();
+  renderStock();
+  document.getElementById('stock-qty').value = '';
+  document.getElementById('stock-note').value = '';
+  toast('✅ บันทึกสต็อกสำเร็จ', 'success');
+}
+
+function deleteStockTx(id) {
+  if (!confirm('ลบรายการ?')) return;
+  stockTx = stockTx.filter(t => t.id !== id);
+  save();
+  renderStock();
+}
+
+function renderStock() {
+  const balance = getStockBalance();
+  const items = [
+    { key: 'tooth_ith', label: 'ฟัน ITH', icon: '🔵', color: 'var(--ith)' },
+    { key: 'tooth_sv', label: 'ฟัน New', icon: '🟢', color: 'var(--sv)' },
+    { key: 'bolt', label: 'Bolt (Set)', icon: '🟣', color: 'var(--bolt)' }
+  ];
+  const cards = document.getElementById('stock-cards');
+  if (cards) {
+    cards.innerHTML = items.map(it => {
+      const val = balance[it.key] || 0;
+      const maxRef = 200;
+      const pct = Math.min(100, Math.max(0, (val / maxRef) * 100));
+      return `<div style="margin-bottom:16px;padding:14px;background:var(--bg3);border-radius:8px;border:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <span style="font-size:14px;font-weight:600">${it.icon} ${it.label}</span>
+          <span style="font-size:24px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${val<0?'var(--danger)':it.color}">${val}</span>
+        </div>
+        ${val < 10 ? `<div class="alert alert-warn" style="margin:6px 0;padding:6px 10px;font-size:11px">⚠️ สต็อกต่ำ</div>` : ''}
+        <div class="stock-bar"><div class="stock-fill" style="width:${pct}%;background:${it.color}"></div></div>
+      </div>`;
+    }).join('');
+  }
+
+  const itemLabels = { tooth_ith: '🔵 ฟัน ITH', tooth_sv: '🟢 ฟัน New', bolt: '🟣 Bolt' };
+  const tbody = document.getElementById('stock-tbody');
+  if (tbody) {
+    tbody.innerHTML = stockTx.map(t => `<tr>
+      <td>${fmtDate(t.date)}</td>
+      <td><span class="badge ${t.type==='in' ? 'badge-in' : 'badge-out'}">${t.type==='in' ? '📥 รับเข้า' : '📤 เบิกออก'}</span></td>
+      <td>${itemLabels[t.item] || t.item}</td>
+      <td style="font-family:'JetBrains Mono',monospace;font-weight:600">${t.qty}</td>
+      <td style="color:var(--text3)">${t.note || '-'}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="deleteStockTx(${t.id})" style="color:var(--danger)">🗑</button></td>
+    </tr>`).join('') || '<tr><td colspan="6" class="empty-state">ไม่มีรายการ</td></tr>';
+  }
+}
+
+// ===================== WHEEL STATUS =====================
+function setActiveBWE(bwe) {
+  activeBWE = bwe;
+  renderWheel();
+}
+
+function getLatestToothType(bwe, bucket, tooth) {
+  const relevant = records.filter(r =>
+    r.bwe === bwe && String(r.bucket) === String(bucket) && r.tooth === tooth
+  ).sort((a,b) => new Date(b.date) - new Date(a.date));
+
+  if (relevant.length > 0) {
+    const types = getWorkTypes(relevant[0]);
+    if (types.some(t => t.includes('ITH'))) return 'ITH';
+    if (types.some(t => t.includes('SV'))) return 'SV';
+  }
+  // fall back to default
+  return defaultToothStatus[bwe]?.[bucket] || 'SV';
+}
+
+function renderWheel() {
+  const grid = document.getElementById('bucket-grid');
+  const title = document.getElementById('wheel-bwe-title');
+  if (!grid) return;
+
+  title.textContent = activeBWE === 'BWE1' ? '🔶 BWE No.1' : '🔷 BWE No.2';
+
+  grid.innerHTML = Array.from({length:14}, (_,i) => {
+    const bn = i+1;
+    const dots = TOOTH_POSITIONS.map(tp => {
+      const type = getLatestToothType(activeBWE, bn, tp);
+      const cls = type === 'ITH' ? 'tooth-ith' : type === 'SV' ? 'tooth-sv' : 'tooth-empty';
+      const lbl = type === 'ITH' ? 'I' : type === 'SV' ? 'S' : '-';
+      return `<span class="tooth-dot ${cls}" title="${tp}: ${type}">${lbl}</span>`;
+    }).join('');
+    return `<div class="bucket-card" onclick="showBucketDetail(${bn})">
+      <div class="bucket-num">บุ้งกี๋ #${bn}</div>
+      <div class="tooth-row">${dots}</div>
+    </div>`;
+  }).join('');
+}
+
+function showBucketDetail(bn) {
+  const panel = document.getElementById('tooth-detail-panel');
+  const title = document.getElementById('detail-title');
+  const content = document.getElementById('detail-content');
+  panel.style.display = 'block';
+  title.textContent = `${activeBWE} - บุ้งกี๋ #${bn} รายละเอียดฟัน`;
+
+  const rows = TOOTH_POSITIONS.map(tp => {
+    const type = getLatestToothType(activeBWE, bn, tp);
+    const last = records.filter(r => r.bwe === activeBWE && String(r.bucket) === String(bn) && r.tooth === tp)
+      .sort((a,b) => new Date(b.date)-new Date(a.date))[0];
+    const badge = type === 'ITH' ? '<span class="badge badge-ith">ITH</span>' : '<span class="badge badge-sv">New</span>';
+    return `<tr>
+      <td><strong>ฟัน ${tp}</strong></td>
+      <td>${badge}</td>
+      <td>${last ? fmtDate(last.date) : 'ไม่มีข้อมูล'}</td>
+      <td>${last ? getWorkTypes(last).join(', ') : '-'}</td>
+    </tr>`;
+  }).join('');
+
+  content.innerHTML = `<table class="tooth-table-small">
+    <thead><tr><th>ตำแหน่ง</th><th>ประเภทฟัน</th><th>เปลี่ยนล่าสุด</th><th>งาน</th></tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+// ===================== MONTHLY =====================
+function renderMonthly() {
+  const year = parseInt(document.getElementById('month-year')?.value || 2026);
+  const container = document.getElementById('monthly-cards');
+  if (!container) return;
+
+  container.innerHTML = MONTHS_FULL.map((mName, mi) => {
+    const monthRecords = records.filter(r => {
+      const d = new Date(r.date);
+      return d.getFullYear() === year && d.getMonth() === mi;
+    });
+
+    const totalWork = monthRecords.length;
+    const ith = monthRecords.filter(r => getWorkTypes(r).some(t => t.includes('ITH'))).length;
+    const sv = monthRecords.filter(r => getWorkTypes(r).some(t => t.includes('SV'))).length;
+    const weld = monthRecords.filter(r => getWorkTypes(r).includes('เชื่อมพอก')).length;
+    const bolt = monthRecords.filter(r => getWorkTypes(r).some(t => t.includes('Bolt'))).length;
+
+    return `<div class="month-card" onclick="showMonthDetail(${mi}, ${year})">
+      <div class="month-name" style="color:${totalWork>0?'var(--accent)':'var(--text3)'}">${mName} ${year + (year >= 2568 ? 0 : 543)}</div>
+      <div class="month-stats">
+        <div class="month-stat">รวมงาน: <span>${totalWork}</span></div>
+        <div class="month-stat">ITH: <span style="color:var(--ith)">${ith}</span></div>
+        <div class="month-stat">New: <span style="color:var(--sv)">${sv}</span></div>
+        <div class="month-stat">พอก: <span style="color:var(--weld)">${weld}</span></div>
+        <div class="month-stat">Bolt: <span style="color:var(--bolt)">${bolt}</span></div>
+        <div class="month-stat">BWE1: <span>${monthRecords.filter(r=>r.bwe==='BWE1').length}</span></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function showMonthDetail(mi, year) {
+  const monthRecords = records.filter(r => {
+    const d = new Date(r.date);
+    return d.getFullYear() === year && d.getMonth() === mi;
+  });
+
+  document.getElementById('monthly-detail').style.display = 'block';
+  document.getElementById('monthly-detail-title').textContent = `สรุปเดือน ${MONTHS_FULL[mi]} ${year}`;
+
+  // stats
+  const bwe1 = monthRecords.filter(r => r.bwe === 'BWE1');
+  const bwe2 = monthRecords.filter(r => r.bwe === 'BWE2');
+  const stats = document.getElementById('monthly-summary-stats');
+  stats.innerHTML = [
+    { label: 'รวมงานซ่อม', val: monthRecords.length, c: 'c-amber' },
+    { label: 'BWE No.1', val: bwe1.length, c: 'c-amber' },
+    { label: 'BWE No.2', val: bwe2.length, c: 'c-blue' },
+    { label: 'เปลี่ยนฟัน', val: monthRecords.filter(r=>getWorkTypes(r).some(t=>t.includes('เปลี่ยนฟัน'))).length, c: 'c-green' },
+    { label: 'พอกฟัน', val: monthRecords.filter(r=>getWorkTypes(r).includes('เชื่อมพอก')).length, c: 'c-orange' },
+    { label: 'เปลี่ยน Bolt', val: monthRecords.filter(r=>getWorkTypes(r).some(t=>t.includes('Bolt'))).length, c: 'c-purple' }
+  ].map(s => `<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-value ${s.c}">${s.val}</div></div>`).join('');
+
+  // per position tables
+  ['BWE1','BWE2'].forEach(bwe => {
+    const bweRecs = monthRecords.filter(r => r.bwe === bwe);
+    const tbody = document.getElementById(`monthly-${bwe.toLowerCase()}-tbody`);
+    const posData = {};
+    TOOTH_POSITIONS.forEach(tp => posData[tp] = { ith:0, sv:0, weld:0, bolt:0 });
+    bweRecs.forEach(r => {
+      const tp = r.tooth;
+      if (!posData[tp]) return;
+      const wt = getWorkTypes(r);
+      if (wt.some(t=>t.includes('ITH'))) posData[tp].ith++;
+      if (wt.some(t=>t.includes('SV'))) posData[tp].sv++;
+      if (wt.includes('เชื่อมพอก')) posData[tp].weld++;
+      if (wt.some(t=>t.includes('Bolt'))) posData[tp].bolt++;
+    });
+    tbody.innerHTML = TOOTH_POSITIONS.map(tp => {
+      const d = posData[tp];
+      const total = d.ith + d.sv + d.weld + d.bolt;
+      if (total === 0) return '';
+      return `<tr>
+        <td><strong>ฟัน ${tp}</strong></td>
+        <td style="color:var(--ith)">${d.ith || '-'}</td>
+        <td style="color:var(--sv)">${d.sv || '-'}</td>
+        <td style="color:var(--weld)">${d.weld || '-'}</td>
+        <td style="color:var(--bolt)">${d.bolt || '-'}</td>
+        <td><strong>${total}</strong></td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="6" style="color:var(--text3);text-align:center;padding:16px">ไม่มีข้อมูล</td></tr>';
+  });
+
+  // all records this month
+  const allTbody = document.getElementById('monthly-all-tbody');
+  allTbody.innerHTML = monthRecords.map(r => {
+    const types = getWorkTypes(r);
+    const badges = [...new Set(types.map(t => {
+      if (t.includes('ITH')) return `<span class="badge badge-ith">ITH</span>`;
+      if (t.includes('SV')) return `<span class="badge badge-sv">New</span>`;
+      if (t.includes('พอก')) return `<span class="badge badge-weld">พอก</span>`;
+      if (t.includes('Bolt')) return `<span class="badge badge-bolt">Bolt</span>`;
+    }).filter(Boolean))].join(' ');
+    return `<tr>
+      <td>${fmtDate(r.date)}</td>
+      <td><span class="tag ${r.bwe==='BWE1'?'tag-bwe1':'tag-bwe2'}">${r.bwe}</span></td>
+      <td>#${r.bucket}</td>
+      <td>ฟัน ${r.tooth}</td>
+      <td>${badges}</td>
+      <td style="font-size:11px;color:var(--text3)">${r.smu || '-'}</td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="6" style="color:var(--text3);text-align:center;padding:16px">ไม่มีข้อมูล</td></tr>';
+
+  document.getElementById('monthly-detail').scrollIntoView({ behavior:'smooth' });
+}
+
+function exportMonthly() {
+  toast('Export ฟีเจอร์: บันทึกข้อมูลจากหน้านี้ได้ผ่าน Ctrl+P หรือ Print to PDF', 'info');
+}
+
+// ===================== DASHBOARD =====================
+function renderDashboard() {
+  // Stats
+  const ith = records.filter(r => getWorkTypes(r).some(t=>t.includes('ITH'))).length;
+  const sv = records.filter(r => getWorkTypes(r).some(t=>t.includes('SV'))).length;
+  const weld = records.filter(r => getWorkTypes(r).includes('เชื่อมพอก')).length;
+  const bolt = records.filter(r => getWorkTypes(r).some(t=>t.includes('Bolt'))).length;
+  const balance = getStockBalance();
+
+  const statGrid = document.getElementById('stat-grid');
+  statGrid.innerHTML = [
+    { label: 'รายการทั้งหมด', val: records.length, c: 'c-amber', sub: 'บันทึก' },
+    { label: 'เปลี่ยนฟัน ITH', val: ith, c: 'c-blue', sub: 'ครั้ง' },
+    { label: 'เปลี่ยนฟันใหม่', val: sv, c: 'c-green', sub: 'ครั้ง' },
+    { label: 'พอกฟัน', val: weld, c: 'c-orange', sub: 'ครั้ง' },
+    { label: 'เปลี่ยน Bolt', val: bolt, c: 'c-purple', sub: 'ครั้ง' }
+  ].map(s => `<div class="stat-card">
+    <div class="stat-label">${s.label}</div>
+    <div class="stat-value ${s.c}">${s.val}</div>
+    <div class="stat-sub">${s.sub}</div>
+  </div>`).join('');
+
+  // Recent
+  const tbody = document.getElementById('recent-tbody');
+  tbody.innerHTML = records.slice(0, 10).map(r => {
+    const types = getWorkTypes(r);
+    const b = [...new Set(types.map(t => {
+      if (t.includes('ITH')) return `<span class="badge badge-ith">ITH</span>`;
+      if (t.includes('SV')) return `<span class="badge badge-sv">New</span>`;
+      if (t.includes('พอก')) return `<span class="badge badge-weld">พอก</span>`;
+      if (t.includes('Bolt')) return `<span class="badge badge-bolt">Bolt</span>`;
+    }).filter(Boolean))].join(' ');
+    return `<tr>
+      <td>${fmtDate(r.date)}</td>
+      <td><span class="tag ${r.bwe==='BWE1'?'tag-bwe1':'tag-bwe2'}">${r.bwe}</span></td>
+      <td style="font-family:'JetBrains Mono',monospace;font-size:12px">#${r.bucket}-${r.tooth}</td>
+      <td>${b}</td>
+    </tr>`;
+  }).join('') || `<tr><td colspan="4" class="empty-state" style="padding:30px">ยังไม่มีบันทึก</td></tr>`;
+
+  // Monthly chart
+  const now = new Date();
+  const year = now.getFullYear();
+  const monthly = Array(12).fill(0);
+  records.forEach(r => {
+    const d = new Date(r.date);
+    if (d.getFullYear() === year) monthly[d.getMonth()]++;
+  });
+  const maxM = Math.max(...monthly, 1);
+  const chartDiv = document.getElementById('chart-monthly');
+  chartDiv.innerHTML = `<div style="display:flex;align-items:flex-end;gap:6px;height:160px;padding:0 8px">
+    ${monthly.map((v,i) => `
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="font-size:10px;color:var(--text3)">${v||''}</div>
+        <div style="width:100%;background:${i===now.getMonth()?'var(--accent)':'var(--accent3)'};border-radius:4px 4px 0 0;height:${Math.max(4,(v/maxM)*120)}px;opacity:0.85;transition:height 0.3s"></div>
+        <div style="font-size:10px;color:var(--text3)">${MONTHS_TH[i]}</div>
+      </div>
+    `).join('')}
+  </div>`;
+
+  // BWE donut-like pie
+  ['bwe1','bwe2'].forEach((b,bi) => {
+    const bwe = bi === 0 ? 'BWE1' : 'BWE2';
+    const recs = records.filter(r => r.bwe === bwe);
+    const cats = [
+      { label:'ITH', val: recs.filter(r=>getWorkTypes(r).some(t=>t.includes('ITH'))).length, c:'var(--ith)' },
+      { label:'New', val: recs.filter(r=>getWorkTypes(r).some(t=>t.includes('SV'))).length, c:'var(--sv)' },
+      { label:'พอก', val: recs.filter(r=>getWorkTypes(r).includes('เชื่อมพอก')).length, c:'var(--weld)' },
+      { label:'Bolt', val: recs.filter(r=>getWorkTypes(r).some(t=>t.includes('Bolt'))).length, c:'var(--bolt)' }
+    ];
+    const total = cats.reduce((s,c)=>s+c.val,0) || 1;
+    document.getElementById(`${b}-donut`).innerHTML = cats.map(c => `
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <div style="width:8px;height:8px;border-radius:50%;background:${c.c}"></div>
+        <div style="flex:1;font-size:12px;color:var(--text2)">${c.label}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:${c.c}">${c.val}</div>
+        <div style="width:80px;height:4px;background:var(--bg3);border-radius:2px;overflow:hidden">
+          <div style="height:100%;width:${(c.val/total*100).toFixed(0)}%;background:${c.c};border-radius:2px"></div>
+        </div>
+      </div>`).join('');
+  });
+
+  // Stock summary
+  const stockSummaryDiv = document.getElementById('stock-summary');
+  const items = [
+    { key:'tooth_ith', label:'ฟัน ITH', c:'var(--ith)' },
+    { key:'tooth_sv', label:'ฟัน New', c:'var(--sv)' },
+    { key:'bolt', label:'Bolt', c:'var(--bolt)' }
+  ];
+  stockSummaryDiv.innerHTML = items.map(it => `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <span style="font-size:13px;color:var(--text2)">${it.label}</span>
+      <span style="font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${(balance[it.key]||0)<5?'var(--danger)':it.c}">${balance[it.key]||0}</span>
+    </div>`).join('');
+}
+
+// ===================== INIT =====================
+setTodayDate();
+renderDashboard();
+</script>
+</body>
+</html>
