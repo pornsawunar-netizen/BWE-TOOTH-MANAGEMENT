@@ -414,6 +414,11 @@
 </head>
 <body>
 
+<div id="loading-overlay" style="position:fixed;inset:0;background:#0a0e1a;display:none;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:16px;">
+  <div style="font-size:48px">⚙️</div>
+  <div style="color:#f59e0b;font-size:18px;font-weight:700">กำลังโหลดข้อมูล...</div>
+  <div style="color:#64748b;font-size:13px">กำลังเชื่อมต่อ Google Sheets</div>
+</div>
 <header>
   <div class="logo">
     <span class="logo-icon">⚙️</span>
@@ -746,8 +751,33 @@
 
 <script>
 // ===================== DATA STORE =====================
-let records = JSON.parse(localStorage.getItem('bwe_records') || '[]');
-let stockTx = JSON.parse(localStorage.getItem('bwe_stock') || '[]');
+// ======= Google Sheets API =======
+const API_URL = 'https://script.google.com/macros/s/AKfycbwd9l9n_y4kmJ9wV3IF-6VbP3Vx0TFBu7JJQOXj2lLD0eJHQaDmRreWQrMYHaZssYzQ/exec';
+
+let records = [];
+let stockTx = [];
+
+async function api(action, extra = {}) {
+  const res = await fetch(API_URL, {
+    method: 'POST',
+    mode: 'cors',
+    body: JSON.stringify({ action, ...extra })
+  });
+  return res.json();
+}
+
+async function loadData() {
+  document.getElementById('loading-overlay').style.display = 'flex';
+  try {
+    const [r, s] = await Promise.all([ api('getRecords'), api('getStock') ]);
+    records  = Array.isArray(r) ? r : [];
+    stockTx  = Array.isArray(s) ? s : [];
+  } catch(e) {
+    toast('❌ โหลดข้อมูลไม่สำเร็จ กรุณาตรวจสอบการเชื่อมต่อ', 'error');
+  }
+  document.getElementById('loading-overlay').style.display = 'none';
+  renderDashboard(); renderRecordTable(); renderStock(); renderWheel(); renderMonthly();
+}
 
 // Default tooth status per bucket (from real data)
 const defaultToothStatus = {
@@ -771,10 +801,7 @@ function toast(msg, type='info') {
   setTimeout(() => t.style.display = 'none', 3000);
 }
 
-function save() {
-  localStorage.setItem('bwe_records', JSON.stringify(records));
-  localStorage.setItem('bwe_stock', JSON.stringify(stockTx));
-}
+function save() { /* ข้อมูลบันทึกผ่าน API ไปยัง Google Sheets */ }
 
 function fmtDate(d) {
   if (!d) return '-';
@@ -826,11 +853,13 @@ function addRecord() {
     date, bwe, bucket, tooth, workTypes: checks, smu: smu || '', note,
     ts: new Date().toISOString()
   };
-  records.unshift(rec);
-  save();
-  clearRecordForm();
-  renderRecordTable();
-  toast('✅ บันทึกข้อมูลสำเร็จ', 'success');
+  toast('⏳ กำลังบันทึก...', 'info');
+  api('addRecord', { data: rec }).then(() => {
+    records.unshift(rec);
+    clearRecordForm();
+    renderRecordTable();
+    toast('✅ บันทึกข้อมูลสำเร็จ', 'success');
+  }).catch(() => toast('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่', 'error'));
 }
 
 function clearRecordForm() {
@@ -843,10 +872,11 @@ function clearRecordForm() {
 
 function deleteRecord(id) {
   if (!confirm('ต้องการลบรายการนี้?')) return;
-  records = records.filter(r => r.id !== id);
-  save();
-  renderRecordTable();
-  toast('ลบแล้ว');
+  api('deleteRecord', { id }).then(() => {
+    records = records.filter(r => r.id !== id);
+    renderRecordTable();
+    toast('🗑 ลบแล้ว');
+  });
 }
 
 function renderRecordTable() {
@@ -908,19 +938,24 @@ function addStockTx() {
     toast('กรุณากรอกข้อมูลให้ครบ', 'error');
     return;
   }
-  stockTx.unshift({ id: Date.now(), date, type, item, qty, note, ts: new Date().toISOString() });
-  save();
-  renderStock();
-  document.getElementById('stock-qty').value = '';
-  document.getElementById('stock-note').value = '';
-  toast('✅ บันทึกสต็อกสำเร็จ', 'success');
+  const tx = { id: Date.now(), date, type, item, qty, note };
+  toast('⏳ กำลังบันทึก...', 'info');
+  api('addStock', { data: tx }).then(() => {
+    stockTx.unshift(tx);
+    renderStock();
+    document.getElementById('stock-qty').value = '';
+    document.getElementById('stock-note').value = '';
+    toast('✅ บันทึกสต็อกสำเร็จ', 'success');
+  }).catch(() => toast('❌ บันทึกไม่สำเร็จ', 'error'));
 }
 
 function deleteStockTx(id) {
   if (!confirm('ลบรายการ?')) return;
-  stockTx = stockTx.filter(t => t.id !== id);
-  save();
-  renderStock();
+  api('deleteStock', { id }).then(() => {
+    stockTx = stockTx.filter(t => t.id !== id);
+    renderStock();
+    toast('🗑 ลบแล้ว');
+  });
 }
 
 function renderStock() {
@@ -1239,7 +1274,7 @@ function renderDashboard() {
 
 // ===================== INIT =====================
 setTodayDate();
-renderDashboard();
+loadData();
 </script>
 </body>
 </html>
