@@ -35,6 +35,39 @@
     font-size: 14px;
   }
 
+  #tooth-work-tbody tr { transition: background 0.15s; }
+  #tooth-work-tbody tr:hover { background: var(--bg3); }
+  #tooth-work-tbody tr.row-active { background: rgba(245,158,11,0.07); }
+  .tw-tooth-label {
+    width: 38px; height: 38px; border-radius: 8px;
+    border: 2px solid var(--border); background: var(--bg3);
+    color: var(--text2); font-size: 14px; font-weight: 700;
+    cursor: pointer; font-family: 'JetBrains Mono', monospace;
+    transition: all 0.15s; display:inline-flex; align-items:center; justify-content:center;
+  }
+  .tw-tooth-label.active { background:var(--accent); border-color:var(--accent); color:#0a0e1a; box-shadow:0 0 8px rgba(245,158,11,0.35); }
+  .tw-cb { width:18px; height:18px; cursor:pointer; accent-color:var(--accent2); }
+  .tw-bolt-cb { width:18px; height:18px; cursor:pointer; accent-color:var(--bolt); }
+
+  .tooth-btn {
+    width: 38px; height: 38px;
+    border-radius: 8px;
+    border: 2px solid var(--border);
+    background: var(--bg3);
+    color: var(--text2);
+    font-size: 14px; font-weight: 700;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    transition: all 0.15s;
+  }
+  .tooth-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .tooth-btn.selected {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #0a0e1a;
+    box-shadow: 0 0 8px rgba(245,158,11,0.4);
+  }
+
   /* ==================== HEADER ==================== */
   header {
     background: linear-gradient(135deg, #0a0e1a 0%, #1a2235 100%);
@@ -505,45 +538,36 @@
             <script>for(let i=1;i<=14;i++) document.write(`<option value="${i}">${i}</option>`);</script>
           </select>
         </div>
-        <div class="form-group">
-          <label>ตำแหน่งฟัน</label>
-          <select id="rec-tooth">
-            <option value="">-- เลือก --</option>
-            <option value="A">A</option><option value="B">B</option>
-            <option value="C">C</option><option value="D">D</option>
-            <option value="E">E</option><option value="F">F</option>
-            <option value="G">G</option><option value="H">H</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label>ประเภทงาน (เลือกได้หลายรายการ)</label>
-        <div class="check-group" id="work-types">
-          <label class="check-item">
-            <input type="checkbox" value="เปลี่ยนฟันใหม่ ITH">
-            <span class="check-label">🔵 เปลี่ยนฟันใหม่ <strong>ITH</strong></span>
-          </label>
-          <label class="check-item">
-            <input type="checkbox" value="เปลี่ยนฟันใหม่ SV">
-            <span class="check-label">🟢 เปลี่ยนฟันใหม่</span>
-          </label>
-          <label class="check-item">
-            <input type="checkbox" value="เชื่อมพอก">
-            <span class="check-label">🟠 เชื่อมพอก (Re-Hard Facing)</span>
-          </label>
-          <label class="check-item">
-            <input type="checkbox" value="เปลี่ยน Bolt ตำแหน่ง 1">
-            <span class="check-label">🟣 เปลี่ยน Bolt ตำแหน่ง 1</span>
-          </label>
-          <label class="check-item">
-            <input type="checkbox" value="เปลี่ยน Bolt ตำแหน่ง 2">
-            <span class="check-label">🟣 เปลี่ยน Bolt ตำแหน่ง 2</span>
-          </label>
-          <label class="check-item">
-            <input type="checkbox" value="เปลี่ยน Bolt ตำแหน่ง 3">
-            <span class="check-label">🟣 เปลี่ยน Bolt ตำแหน่ง 3</span>
-          </label>
+        <div class="form-group" style="grid-column:1/-1">
+          <label>ตำแหน่งฟัน &amp; ประเภทงาน <span style="color:var(--text3);font-weight:400;font-size:11px">(เลือกได้หลายตำแหน่ง)</span></label>
+          <div style="margin-bottom:8px;display:flex;gap:6px;flex-wrap:wrap">
+            <button type="button" onclick="selectAllTeeth()" style="padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text3);font-size:11px;cursor:pointer;font-family:inherit">เลือกทั้งหมด</button>
+            <button type="button" onclick="clearAllTeeth()" style="padding:5px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text3);font-size:11px;cursor:pointer;font-family:inherit">ล้างทั้งหมด</button>
+          </div>
+          <!-- tooth-work grid table -->
+          <div style="overflow-x:auto">
+            <table id="tooth-work-table" style="width:100%;border-collapse:collapse;font-size:13px">
+              <thead>
+                <tr>
+                  <th style="padding:8px 10px;text-align:left;color:var(--text3);font-weight:600;border-bottom:1px solid var(--border);width:52px">ฟัน</th>
+                  <th style="padding:8px 6px;text-align:center;color:var(--ith);font-weight:600;border-bottom:1px solid var(--border)">🔵 ITH</th>
+                  <th style="padding:8px 6px;text-align:center;color:var(--sv);font-weight:600;border-bottom:1px solid var(--border)">🟢 New</th>
+                  <th style="padding:8px 6px;text-align:center;color:var(--weld);font-weight:600;border-bottom:1px solid var(--border)">🟠 พอก</th>
+                  <th style="padding:8px 6px;text-align:center;color:var(--bolt);font-weight:600;border-bottom:1px solid var(--border)" colspan="3">🟣 Bolt (EA)</th>
+                </tr>
+                <tr>
+                  <th style="border-bottom:1px solid var(--border)"></th>
+                  <th style="border-bottom:1px solid var(--border)"></th>
+                  <th style="border-bottom:1px solid var(--border)"></th>
+                  <th style="border-bottom:1px solid var(--border)"></th>
+                  <th style="padding:4px 6px;text-align:center;color:var(--text3);font-size:11px;border-bottom:1px solid var(--border)">1</th>
+                  <th style="padding:4px 6px;text-align:center;color:var(--text3);font-size:11px;border-bottom:1px solid var(--border)">2</th>
+                  <th style="padding:4px 6px;text-align:center;color:var(--text3);font-size:11px;border-bottom:1px solid var(--border)">3</th>
+                </tr>
+              </thead>
+              <tbody id="tooth-work-tbody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -711,9 +735,41 @@
         <button class="btn btn-ghost btn-sm" onclick="document.getElementById('monthly-detail').style.display='none'">✕ ปิด</button>
       </div>
 
-      <div class="grid-3" id="monthly-summary-stats" style="margin-bottom:16px"></div>
+      <!-- STAT CARDS -->
+      <div class="grid-3" id="monthly-summary-stats" style="margin-bottom:20px"></div>
 
-      <div class="grid-2">
+      <!-- CHARTS ROW 1 -->
+      <div class="grid-2" style="margin-bottom:16px">
+        <div class="card" style="background:var(--bg3)">
+          <div class="card-title" style="margin-bottom:14px;font-size:13px">📊 ประเภทงานซ่อม (รวม)</div>
+          <div id="chart-work-type" style="min-height:160px"></div>
+        </div>
+        <div class="card" style="background:var(--bg3)">
+          <div class="card-title" style="margin-bottom:14px;font-size:13px">⚖️ เปรียบเทียบ BWE1 vs BWE2</div>
+          <div id="chart-bwe-compare" style="min-height:160px"></div>
+        </div>
+      </div>
+
+      <!-- CHARTS ROW 2 -->
+      <div class="grid-2" style="margin-bottom:16px">
+        <div class="card" style="background:var(--bg3)">
+          <div class="card-title" style="margin-bottom:14px;font-size:13px">🦷 งานซ่อมแต่ละตำแหน่งฟัน — BWE No.1</div>
+          <div id="chart-tooth-bwe1" style="min-height:180px"></div>
+        </div>
+        <div class="card" style="background:var(--bg3)">
+          <div class="card-title" style="margin-bottom:14px;font-size:13px">🦷 งานซ่อมแต่ละตำแหน่งฟัน — BWE No.2</div>
+          <div id="chart-tooth-bwe2" style="min-height:180px"></div>
+        </div>
+      </div>
+
+      <!-- CHART ROW 3 - Daily trend -->
+      <div class="card" style="background:var(--bg3);margin-bottom:16px">
+        <div class="card-title" style="margin-bottom:14px;font-size:13px">📅 งานซ่อมรายวันในเดือนนี้</div>
+        <div id="chart-daily-trend" style="min-height:140px"></div>
+      </div>
+
+      <!-- TABLES -->
+      <div class="grid-2" style="margin-bottom:16px">
         <div>
           <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px">BWE No.1 - สรุปฟัน</div>
           <div class="table-wrap">
@@ -834,40 +890,128 @@ function setTodayDate() {
   document.getElementById('stock-date').value = today;
 }
 
-function addRecord() {
+// ---- Tooth-Work Table ----
+const TOOTH_WORK_POSITIONS = ['A','B','C','D','E','F','G','H'];
+
+function buildToothWorkTable() {
+  const tbody = document.getElementById('tooth-work-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = TOOTH_WORK_POSITIONS.map(tp => `
+    <tr id="twr-${tp}">
+      <td style="padding:6px 8px">
+        <button type="button" class="tw-tooth-label" id="twt-${tp}" onclick="toggleToothRow('${tp}')">${tp}</button>
+      </td>
+      <td style="text-align:center;padding:6px"><input type="checkbox" class="tw-cb" id="tw-ith-${tp}" onchange="syncRowActive('${tp}')"></td>
+      <td style="text-align:center;padding:6px"><input type="checkbox" class="tw-cb" id="tw-sv-${tp}" onchange="syncRowActive('${tp}')"></td>
+      <td style="text-align:center;padding:6px"><input type="checkbox" class="tw-cb" id="tw-weld-${tp}" onchange="syncRowActive('${tp}')"></td>
+      <td style="text-align:center;padding:6px"><input type="checkbox" class="tw-bolt-cb" id="tw-b1-${tp}" onchange="syncRowActive('${tp}')"></td>
+      <td style="text-align:center;padding:6px"><input type="checkbox" class="tw-bolt-cb" id="tw-b2-${tp}" onchange="syncRowActive('${tp}')"></td>
+      <td style="text-align:center;padding:6px"><input type="checkbox" class="tw-bolt-cb" id="tw-b3-${tp}" onchange="syncRowActive('${tp}')"></td>
+    </tr>`).join('');
+}
+
+function toggleToothRow(tp) {
+  const btn = document.getElementById(`twt-${tp}`);
+  const isActive = btn.classList.toggle('active');
+  // auto-tick/untick all checkboxes in row when toggling tooth button
+  ['ith','sv','weld','b1','b2','b3'].forEach(k => {
+    const cb = document.getElementById(`tw-${k}-${tp}`);
+    if (cb) cb.checked = isActive;
+  });
+  syncRowActive(tp);
+}
+
+function syncRowActive(tp) {
+  const row = document.getElementById(`twr-${tp}`);
+  const hasAny = ['ith','sv','weld','b1','b2','b3'].some(k => {
+    const cb = document.getElementById(`tw-${k}-${tp}`);
+    return cb && cb.checked;
+  });
+  row.classList.toggle('row-active', hasAny);
+  document.getElementById(`twt-${tp}`).classList.toggle('active', hasAny);
+}
+
+function selectAllTeeth() {
+  TOOTH_WORK_POSITIONS.forEach(tp => {
+    document.getElementById(`twt-${tp}`)?.classList.add('active');
+    syncRowActive(tp);
+  });
+}
+function clearAllTeeth() {
+  TOOTH_WORK_POSITIONS.forEach(tp => {
+    ['ith','sv','weld','b1','b2','b3'].forEach(k => {
+      const cb = document.getElementById(`tw-${k}-${tp}`);
+      if (cb) cb.checked = false;
+    });
+    document.getElementById(`twt-${tp}`)?.classList.remove('active');
+    document.getElementById(`twr-${tp}`)?.classList.remove('row-active');
+  });
+}
+function getSelectedTeeth() {
+  return TOOTH_WORK_POSITIONS.filter(tp =>
+    ['ith','sv','weld','b1','b2','b3'].some(k => document.getElementById(`tw-${k}-${tp}`)?.checked)
+  );
+}
+function getToothWorkTypes(tp) {
+  const types = [];
+  if (document.getElementById(`tw-ith-${tp}`)?.checked)  types.push('เปลี่ยนฟันใหม่ ITH');
+  if (document.getElementById(`tw-sv-${tp}`)?.checked)   types.push('เปลี่ยนฟันใหม่ SV');
+  if (document.getElementById(`tw-weld-${tp}`)?.checked) types.push('เชื่อมพอก');
+  if (document.getElementById(`tw-b1-${tp}`)?.checked)   types.push('เปลี่ยน Bolt ตำแหน่ง 1');
+  if (document.getElementById(`tw-b2-${tp}`)?.checked)   types.push('เปลี่ยน Bolt ตำแหน่ง 2');
+  if (document.getElementById(`tw-b3-${tp}`)?.checked)   types.push('เปลี่ยน Bolt ตำแหน่ง 3');
+  return types;
+}
+
+async function addRecord() {
   const date = document.getElementById('rec-date').value;
   const bwe = document.getElementById('rec-bwe').value;
   const bucket = document.getElementById('rec-bucket').value;
-  const tooth = document.getElementById('rec-tooth').value;
   const smu = document.getElementById('rec-smu').value;
   const note = document.getElementById('rec-note').value;
-  const checks = [...document.querySelectorAll('#work-types input:checked')].map(c => c.value);
+  const teeth = getSelectedTeeth();
 
-  if (!date || !bwe || !bucket || !tooth || checks.length === 0) {
-    toast('กรุณากรอกข้อมูลให้ครบถ้วนและเลือกประเภทงานอย่างน้อย 1 รายการ', 'error');
+  if (!date || !bwe || !bucket || teeth.length === 0) {
+    toast('กรุณากรอกข้อมูลให้ครบถ้วนและเลือกตำแหน่งฟันพร้อมประเภทงานอย่างน้อย 1 รายการ', 'error');
     return;
   }
 
-  const rec = {
-    id: Date.now(),
-    date, bwe, bucket, tooth, workTypes: checks, smu: smu || '', note,
-    ts: new Date().toISOString()
-  };
-  toast('⏳ กำลังบันทึก...', 'info');
-  api('addRecord', { data: rec }).then(() => {
-    records.unshift(rec);
+  const newRecs = [];
+  for (let i = 0; i < teeth.length; i++) {
+    const tp = teeth[i];
+    const checks = getToothWorkTypes(tp);
+    if (checks.length === 0) continue;
+    newRecs.push({
+      id: Date.now() + i,
+      date, bwe, bucket, tooth: tp, workTypes: checks, smu: smu || '', note,
+      ts: new Date().toISOString()
+    });
+  }
+
+  if (newRecs.length === 0) {
+    toast('กรุณาเลือกประเภทงานในแต่ละฟันที่เลือก', 'error');
+    return;
+  }
+
+  toast(`⏳ กำลังบันทึก ${newRecs.length} รายการ...`, 'info');
+  try {
+    for (const rec of newRecs) {
+      await api('addRecord', { data: rec });
+      records.unshift(rec);
+    }
     clearRecordForm();
     renderRecordTable();
-    toast('✅ บันทึกข้อมูลสำเร็จ', 'success');
-  }).catch(() => toast('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่', 'error'));
+    toast(`✅ บันทึก ${newRecs.length} รายการสำเร็จ`, 'success');
+  } catch(e) {
+    toast('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่', 'error');
+  }
 }
 
 function clearRecordForm() {
   document.getElementById('rec-bucket').value = '';
-  document.getElementById('rec-tooth').value = '';
+  clearAllTeeth();
   document.getElementById('rec-smu').value = '';
   document.getElementById('rec-note').value = '';
-  document.querySelectorAll('#work-types input').forEach(c => c.checked = false);
 }
 
 function deleteRecord(id) {
@@ -1104,52 +1248,218 @@ function showMonthDetail(mi, year) {
   });
 
   document.getElementById('monthly-detail').style.display = 'block';
-  document.getElementById('monthly-detail-title').textContent = `สรุปเดือน ${MONTHS_FULL[mi]} ${year}`;
+  document.getElementById('monthly-detail-title').textContent = `📅 สรุปเดือน ${MONTHS_FULL[mi]} ${year}`;
 
-  // stats
   const bwe1 = monthRecords.filter(r => r.bwe === 'BWE1');
   const bwe2 = monthRecords.filter(r => r.bwe === 'BWE2');
+  const cntITH  = monthRecords.filter(r=>getWorkTypes(r).some(t=>t.includes('ITH'))).length;
+  const cntNew  = monthRecords.filter(r=>getWorkTypes(r).some(t=>t.includes('SV'))).length;
+  const cntWeld = monthRecords.filter(r=>getWorkTypes(r).includes('เชื่อมพอก')).length;
+  const cntBolt = monthRecords.filter(r=>getWorkTypes(r).some(t=>t.includes('Bolt'))).length;
+
+  // ---- STAT CARDS ----
   const stats = document.getElementById('monthly-summary-stats');
   stats.innerHTML = [
     { label: 'รวมงานซ่อม', val: monthRecords.length, c: 'c-amber' },
     { label: 'BWE No.1', val: bwe1.length, c: 'c-amber' },
     { label: 'BWE No.2', val: bwe2.length, c: 'c-blue' },
-    { label: 'เปลี่ยนฟัน', val: monthRecords.filter(r=>getWorkTypes(r).some(t=>t.includes('เปลี่ยนฟัน'))).length, c: 'c-green' },
-    { label: 'พอกฟัน', val: monthRecords.filter(r=>getWorkTypes(r).includes('เชื่อมพอก')).length, c: 'c-orange' },
-    { label: 'เปลี่ยน Bolt', val: monthRecords.filter(r=>getWorkTypes(r).some(t=>t.includes('Bolt'))).length, c: 'c-purple' }
+    { label: 'เปลี่ยนฟัน ITH', val: cntITH, c: 'c-blue' },
+    { label: 'เปลี่ยนฟันใหม่', val: cntNew, c: 'c-green' },
+    { label: 'พอกฟัน', val: cntWeld, c: 'c-orange' },
+    { label: 'เปลี่ยน Bolt', val: cntBolt, c: 'c-purple' }
   ].map(s => `<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-value ${s.c}">${s.val}</div></div>`).join('');
 
-  // per position tables
+  // ---- CHART 1: Work type bar chart ----
+  const workTypes = [
+    { label:'เปลี่ยนฟัน ITH', val: cntITH,  color:'var(--ith)'    },
+    { label:'เปลี่ยนฟันใหม่', val: cntNew,  color:'var(--sv)'     },
+    { label:'พอกฟัน',         val: cntWeld, color:'var(--weld)'   },
+    { label:'เปลี่ยน Bolt',   val: cntBolt, color:'var(--bolt)'   },
+  ];
+  const maxWT = Math.max(...workTypes.map(w=>w.val), 1);
+  document.getElementById('chart-work-type').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:10px;padding:4px 0">
+      ${workTypes.map(w => `
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:90px;font-size:12px;color:var(--text2);text-align:right;flex-shrink:0">${w.label}</div>
+          <div style="flex:1;height:28px;background:var(--bg);border-radius:4px;overflow:hidden;position:relative">
+            <div style="height:100%;width:${w.val===0?'0':(w.val/maxWT*100).toFixed(1)}%;background:${w.color};border-radius:4px;transition:width 0.6s ease;opacity:0.85"></div>
+          </div>
+          <div style="width:30px;font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${w.color}">${w.val}</div>
+        </div>`).join('')}
+    </div>`;
+
+  // ---- CHART 2: BWE compare grouped bars ----
+  const bweCats = [
+    { label:'เปลี่ยนฟัน ITH', bwe1: bwe1.filter(r=>getWorkTypes(r).some(t=>t.includes('ITH'))).length, bwe2: bwe2.filter(r=>getWorkTypes(r).some(t=>t.includes('ITH'))).length, c:'var(--ith)' },
+    { label:'เปลี่ยนฟันใหม่', bwe1: bwe1.filter(r=>getWorkTypes(r).some(t=>t.includes('SV'))).length,  bwe2: bwe2.filter(r=>getWorkTypes(r).some(t=>t.includes('SV'))).length,  c:'var(--sv)' },
+    { label:'พอกฟัน',         bwe1: bwe1.filter(r=>getWorkTypes(r).includes('เชื่อมพอก')).length,       bwe2: bwe2.filter(r=>getWorkTypes(r).includes('เชื่อมพอก')).length,       c:'var(--weld)' },
+    { label:'Bolt',            bwe1: bwe1.filter(r=>getWorkTypes(r).some(t=>t.includes('Bolt'))).length, bwe2: bwe2.filter(r=>getWorkTypes(r).some(t=>t.includes('Bolt'))).length, c:'var(--bolt)' },
+  ];
+  const maxBWE = Math.max(...bweCats.flatMap(c=>[c.bwe1,c.bwe2]), 1);
+  document.getElementById('chart-bwe-compare').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:8px;padding:4px 0">
+      <div style="display:flex;gap:16px;margin-bottom:4px;font-size:11px">
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:var(--accent);display:inline-block"></span>BWE No.1</span>
+        <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:var(--accent3);display:inline-block"></span>BWE No.2</span>
+      </div>
+      ${bweCats.map(c => `
+        <div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:3px">${c.label}</div>
+          <div style="display:flex;flex-direction:column;gap:3px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="width:36px;font-size:10px;color:var(--text3)">BWE1</div>
+              <div style="flex:1;height:14px;background:var(--bg);border-radius:3px;overflow:hidden">
+                <div style="height:100%;width:${(c.bwe1/maxBWE*100).toFixed(1)}%;background:var(--accent);border-radius:3px;opacity:0.9"></div>
+              </div>
+              <div style="width:20px;font-size:11px;font-weight:700;color:var(--accent)">${c.bwe1}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="width:36px;font-size:10px;color:var(--text3)">BWE2</div>
+              <div style="flex:1;height:14px;background:var(--bg);border-radius:3px;overflow:hidden">
+                <div style="height:100%;width:${(c.bwe2/maxBWE*100).toFixed(1)}%;background:var(--accent3);border-radius:3px;opacity:0.9"></div>
+              </div>
+              <div style="width:20px;font-size:11px;font-weight:700;color:var(--accent3)">${c.bwe2}</div>
+            </div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+
+  // ---- CHART 3 & 4: Per tooth position stacked bars (BWE1 & BWE2) ----
   ['BWE1','BWE2'].forEach(bwe => {
     const bweRecs = monthRecords.filter(r => r.bwe === bwe);
-    const tbody = document.getElementById(`monthly-${bwe.toLowerCase()}-tbody`);
     const posData = {};
-    TOOTH_POSITIONS.forEach(tp => posData[tp] = { ith:0, sv:0, weld:0, bolt:0 });
+    TOOTH_POSITIONS.forEach(tp => posData[tp] = { ith:0, sv:0, weld:0, bolt:0, total:0 });
     bweRecs.forEach(r => {
       const tp = r.tooth;
       if (!posData[tp]) return;
       const wt = getWorkTypes(r);
       if (wt.some(t=>t.includes('ITH'))) posData[tp].ith++;
-      if (wt.some(t=>t.includes('SV'))) posData[tp].sv++;
-      if (wt.includes('เชื่อมพอก')) posData[tp].weld++;
+      if (wt.some(t=>t.includes('SV')))  posData[tp].sv++;
+      if (wt.includes('เชื่อมพอก'))      posData[tp].weld++;
       if (wt.some(t=>t.includes('Bolt'))) posData[tp].bolt++;
     });
+    TOOTH_POSITIONS.forEach(tp => {
+      const d = posData[tp];
+      d.total = d.ith + d.sv + d.weld + d.bolt;
+    });
+    const maxTooth = Math.max(...TOOTH_POSITIONS.map(tp => posData[tp].total), 1);
+    const chartId = bwe === 'BWE1' ? 'chart-tooth-bwe1' : 'chart-tooth-bwe2';
+    const segments = [
+      { key:'ith',  color:'var(--ith)',  label:'ITH'  },
+      { key:'sv',   color:'var(--sv)',   label:'New'  },
+      { key:'weld', color:'var(--weld)', label:'พอก' },
+      { key:'bolt', color:'var(--bolt)', label:'Bolt' },
+    ];
+    document.getElementById(chartId).innerHTML = `
+      <div style="display:flex;align-items:flex-end;gap:6px;height:150px;padding:0 4px">
+        ${TOOTH_POSITIONS.map(tp => {
+          const d = posData[tp];
+          const barH = d.total === 0 ? 4 : Math.max(10, (d.total/maxTooth)*130);
+          const segs = segments.filter(s => d[s.key] > 0).map(s => {
+            const h = (d[s.key]/d.total)*barH;
+            return `<div style="width:100%;height:${h.toFixed(1)}px;background:${s.color};opacity:0.85" title="${s.label}: ${d[s.key]}"></div>`;
+          }).join('');
+          return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:3px">
+            <div style="font-size:10px;color:var(--text3);height:16px;display:flex;align-items:center">${d.total||''}</div>
+            <div style="width:100%;display:flex;flex-direction:column-reverse;border-radius:3px 3px 0 0;overflow:hidden;height:${barH.toFixed(1)}px;background:var(--bg)">
+              ${segs || `<div style="width:100%;height:4px;background:var(--bg3)"></div>`}
+            </div>
+            <div style="font-size:11px;color:var(--text2);font-weight:600">฿{tp}</div>
+          </div>`;
+        }).join('').replace(/฿{tp}/g, '').replace(/฿\{tp\}/g, '') }
+      </div>
+      <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;justify-content:center">
+        ${segments.map(s=>`<span style="font-size:10px;display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:${s.color};display:inline-block"></span>${s.label}</span>`).join('')}
+      </div>`;
+
+    // Fix tooth labels properly
+    const el = document.getElementById(chartId);
+    let html = el.innerHTML;
+    TOOTH_POSITIONS.forEach(tp => {
+      html = html.replace(new RegExp(`<div style="font-size:11px;color:var\(--text2\);font-weight:600"></div>`, 'g'), '');
+    });
+  });
+
+  // Re-render tooth charts properly
+  ['BWE1','BWE2'].forEach(bwe => {
+    const bweRecs = monthRecords.filter(r => r.bwe === bwe);
+    const posData = {};
+    TOOTH_POSITIONS.forEach(tp => posData[tp] = { ith:0, sv:0, weld:0, bolt:0 });
+    bweRecs.forEach(r => {
+      const tp = r.tooth; if (!posData[tp]) return;
+      const wt = getWorkTypes(r);
+      if (wt.some(t=>t.includes('ITH'))) posData[tp].ith++;
+      if (wt.some(t=>t.includes('SV')))  posData[tp].sv++;
+      if (wt.includes('เชื่อมพอก'))      posData[tp].weld++;
+      if (wt.some(t=>t.includes('Bolt'))) posData[tp].bolt++;
+    });
+    const segs = [
+      { key:'ith',  color:'var(--ith)',  label:'ITH'  },
+      { key:'sv',   color:'var(--sv)',   label:'New'  },
+      { key:'weld', color:'var(--weld)', label:'พอก' },
+      { key:'bolt', color:'var(--bolt)', label:'Bolt' },
+    ];
+    const totals = TOOTH_POSITIONS.map(tp => segs.reduce((s,sg)=>s+posData[tp][sg.key],0));
+    const maxT = Math.max(...totals, 1);
+    const chartId = bwe === 'BWE1' ? 'chart-tooth-bwe1' : 'chart-tooth-bwe2';
+    let bars = TOOTH_POSITIONS.map((tp, i) => {
+      const total = totals[i];
+      const barH = total === 0 ? 4 : Math.max(10, (total/maxT)*130);
+      const segHtml = segs.filter(s=>posData[tp][s.key]>0).map(s => {
+        const h = (posData[tp][s.key]/Math.max(total,1))*barH;
+        return `<div style="width:100%;height:${h.toFixed(1)}px;background:${s.color};opacity:0.85" title="${s.label}: ${posData[tp][s.key]}"></div>`;
+      }).join('');
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px">
+        <div style="font-size:10px;color:${total>0?'var(--text2)':'var(--text3)'};height:16px;display:flex;align-items:center">${total||''}</div>
+        <div style="width:100%;display:flex;flex-direction:column-reverse;border-radius:3px 3px 0 0;overflow:hidden;height:${barH.toFixed(1)}px;min-height:4px;background:var(--bg)">
+          ${segHtml || '<div style="width:100%;height:4px;background:var(--border)"></div>'}
+        </div>
+        <div style="font-size:11px;color:var(--text2);font-weight:600">${tp}</div>
+      </div>`;
+    }).join('');
+    document.getElementById(chartId).innerHTML = `
+      <div style="display:flex;align-items:flex-end;gap:5px;height:155px;padding:0 4px">${bars}</div>
+      <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap;justify-content:center">
+        ${segs.map(s=>`<span style="font-size:10px;display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:2px;background:${s.color};display:inline-block"></span>${s.label}</span>`).join('')}
+      </div>`;
+
+    // Update table too
+    const tbody = document.getElementById(`monthly-${bwe.toLowerCase()}-tbody`);
     tbody.innerHTML = TOOTH_POSITIONS.map(tp => {
       const d = posData[tp];
       const total = d.ith + d.sv + d.weld + d.bolt;
       if (total === 0) return '';
       return `<tr>
         <td><strong>ฟัน ${tp}</strong></td>
-        <td style="color:var(--ith)">${d.ith || '-'}</td>
-        <td style="color:var(--sv)">${d.sv || '-'}</td>
-        <td style="color:var(--weld)">${d.weld || '-'}</td>
-        <td style="color:var(--bolt)">${d.bolt || '-'}</td>
+        <td style="color:var(--ith)">${d.ith||'-'}</td>
+        <td style="color:var(--sv)">${d.sv||'-'}</td>
+        <td style="color:var(--weld)">${d.weld||'-'}</td>
+        <td style="color:var(--bolt)">${d.bolt||'-'}</td>
         <td><strong>${total}</strong></td>
       </tr>`;
     }).join('') || '<tr><td colspan="6" style="color:var(--text3);text-align:center;padding:16px">ไม่มีข้อมูล</td></tr>';
   });
 
-  // all records this month
+  // ---- CHART 5: Daily trend ----
+  const daysInMonth = new Date(year, mi+1, 0).getDate();
+  const dailyCounts = Array(daysInMonth).fill(0);
+  monthRecords.forEach(r => {
+    const day = new Date(r.date).getDate();
+    if (day >= 1 && day <= daysInMonth) dailyCounts[day-1]++;
+  });
+  const maxDay = Math.max(...dailyCounts, 1);
+  document.getElementById('chart-daily-trend').innerHTML = `
+    <div style="display:flex;align-items:flex-end;gap:2px;height:110px;padding:0 4px;overflow-x:auto">
+      ${dailyCounts.map((v,i) => `
+        <div style="flex:1;min-width:14px;display:flex;flex-direction:column;align-items:center;gap:2px">
+          <div style="font-size:9px;color:var(--text3);height:14px">${v||''}</div>
+          <div style="width:100%;background:${v>0?'var(--accent3)':'var(--border)'};border-radius:2px 2px 0 0;height:${v===0?4:Math.max(6,(v/maxDay)*80)}px;opacity:${v>0?0.85:0.3};transition:height 0.4s"></div>
+          <div style="font-size:9px;color:var(--text3)">${i+1}</div>
+        </div>`).join('')}
+    </div>`;
+
+  // ---- ALL RECORDS TABLE ----
   const allTbody = document.getElementById('monthly-all-tbody');
   allTbody.innerHTML = monthRecords.map(r => {
     const types = getWorkTypes(r);
@@ -1273,6 +1583,7 @@ function renderDashboard() {
 }
 
 // ===================== INIT =====================
+buildToothWorkTable();
 setTodayDate();
 loadData();
 </script>
