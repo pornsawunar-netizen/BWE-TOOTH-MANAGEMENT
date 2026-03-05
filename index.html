@@ -444,6 +444,8 @@
   ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 </head>
 <body>
 
@@ -664,21 +666,33 @@
       </div>
       <div class="form-group">
         <label>ประเภทรายการ</label>
-        <select id="stock-type">
+        <select id="stock-type" onchange="toggleStockToothPos()">
           <option value="in">📥 รับเข้า (In)</option>
           <option value="out">📤 เบิกออก (Out)</option>
         </select>
       </div>
       <div class="form-group">
         <label>สินค้า</label>
-        <select id="stock-item">
+        <select id="stock-item" onchange="toggleStockToothPos()">
           <option value="tooth_ith">ฟัน ITH</option>
           <option value="tooth_sv">ฟัน New</option>
           <option value="bolt">Bolt (Set)</option>
         </select>
       </div>
+      <div class="form-group" id="stock-tooth-pos-group" style="display:none">
+        <label>ตำแหน่งฟัน <span style="color:var(--text3);font-weight:400;font-size:11px">(เลือกได้หลายตำแหน่ง)</span></label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
+          <button type="button" class="tooth-btn" data-stp="A" onclick="toggleStockTooth(this)">A</button>
+          <button type="button" class="tooth-btn" data-stp="B" onclick="toggleStockTooth(this)">B</button>
+          <button type="button" class="tooth-btn" data-stp="C" onclick="toggleStockTooth(this)">C</button>
+          <button type="button" class="tooth-btn" data-stp="D" onclick="toggleStockTooth(this)">D</button>
+          <button type="button" onclick="document.querySelectorAll('[data-stp]').forEach(b=>b.classList.add('selected'))" style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text3);font-size:11px;cursor:pointer;font-family:inherit">เลือกทั้งหมด</button>
+          <button type="button" onclick="document.querySelectorAll('[data-stp]').forEach(b=>b.classList.remove('selected'))" style="padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--bg3);color:var(--text3);font-size:11px;cursor:pointer;font-family:inherit">ล้าง</button>
+        </div>
+        <div style="font-size:11px;color:var(--text3);margin-top:6px">💡 ระบบจะบันทึกแยกทีละตำแหน่ง จำนวนต่อตำแหน่งตามที่กรอก</div>
+      </div>
       <div class="form-group">
-        <label>จำนวน</label>
+        <label>จำนวน <span id="stock-qty-unit" style="color:var(--text3);font-weight:400;font-size:11px">ชิ้น</span></label>
         <input type="number" id="stock-qty" min="1" placeholder="จำนวน">
       </div>
       <div class="form-group">
@@ -703,7 +717,7 @@
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>วันที่</th><th>ประเภท</th><th>สินค้า</th><th>จำนวน</th><th>หมายเหตุ</th><th></th></tr></thead>
+        <thead><tr><th>วันที่</th><th>ประเภท</th><th>สินค้า</th><th>ตำแหน่ง</th><th>จำนวน</th><th>หมายเหตุ</th><th></th></tr></thead>
         <tbody id="stock-tbody"></tbody>
       </table>
     </div>
@@ -737,6 +751,12 @@
 
       <!-- STAT CARDS -->
       <div class="grid-3" id="monthly-summary-stats" style="margin-bottom:20px"></div>
+
+      <!-- STOCK BALANCE SUMMARY -->
+      <div class="card" style="background:var(--bg3);margin-bottom:16px" id="monthly-stock-card">
+        <div class="card-title" style="font-size:13px;margin-bottom:14px">📦 ยอดคงเหลือคลัง ณ สิ้นเดือน</div>
+        <div id="monthly-stock-summary"></div>
+      </div>
 
       <!-- CHARTS ROW 1 -->
       <div class="grid-2" style="margin-bottom:16px">
@@ -861,7 +881,12 @@ function save() { /* ข้อมูลบันทึกผ่าน API ไป
 
 function fmtDate(d) {
   if (!d) return '-';
-  return new Date(d).toLocaleDateString('th-TH', {day:'2-digit', month:'short', year:'numeric'});
+  const dt = new Date(d + 'T00:00:00');
+  const day = String(dt.getDate()).padStart(2, '0');
+  const MONTHS = ['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const month = MONTHS[dt.getMonth()];
+  const year = dt.getFullYear() + 543;
+  return `${day} ${month} ${year}`;
 }
 
 function getWorkTypes(r) {
@@ -998,13 +1023,53 @@ async function addRecord() {
     for (const rec of newRecs) {
       await api('addRecord', { data: rec });
       records.unshift(rec);
+      // Auto-deduct stock based on installed tooth position
+      await autoDeductStock(rec);
     }
     clearRecordForm();
     renderRecordTable();
+    renderStock();
     toast(`✅ บันทึก ${newRecs.length} รายการสำเร็จ`, 'success');
   } catch(e) {
     toast('❌ บันทึกไม่สำเร็จ กรุณาลองใหม่', 'error');
   }
+}
+
+// Mapping: installed tooth position → stock positions to deduct
+// Map: installed tooth position → stock tag position to deduct (1 EA)
+// e.g. ติดตั้งที่ C,D,E,F → ตัดสต็อก tag A ออก 1 ชิ้น
+const INSTALL_TO_STOCK_TAG = {
+  'C': 'A', 'D': 'A', 'E': 'A', 'F': 'A',
+  'A': 'B', 'H': 'B',
+  'B': 'C',
+  'G': 'D',
+};
+
+async function autoDeductStock(rec) {
+  const wt = getWorkTypes(rec);
+  const hasITH = wt.some(t => t.includes('ITH'));
+  const hasNew  = wt.some(t => t.includes('SV'));
+  if (!hasITH && !hasNew) return; // ตัดเฉพาะรายการเปลี่ยนฟัน
+
+  const installPos = rec.tooth; // ตำแหน่งที่ติดตั้ง A-H
+  const stockTag = INSTALL_TO_STOCK_TAG[installPos];
+  if (!stockTag) return; // ตำแหน่งนี้ไม่มี mapping
+
+  const item = hasITH ? 'tooth_ith' : 'tooth_sv';
+  const itemLabel = hasITH ? 'ฟัน ITH' : 'ฟัน New';
+
+  const tx = {
+    id: Date.now() + 900,
+    date: rec.date,
+    type: 'out',
+    item,
+    qty: 1,
+    note: `ตัดยอดอัตโนมัติ: ติดตั้ง${itemLabel}ตำแหน่ง ${installPos} → ตัดสต็อก tag ${stockTag}`,
+    toothPos: stockTag,
+    autoDeduct: true,
+  };
+  await api('addStock', { data: tx });
+  stockTx.unshift(tx);
 }
 
 function clearRecordForm() {
@@ -1071,26 +1136,64 @@ function getStockBalance() {
   return balance;
 }
 
-function addStockTx() {
+function toggleStockTooth(btn) {
+  btn.classList.toggle('selected');
+}
+function toggleStockToothPos() {
+  const type = document.getElementById('stock-type').value;
+  const item = document.getElementById('stock-item').value;
+  const isTooth = item === 'tooth_ith' || item === 'tooth_sv';
+  const isIn = type === 'in';
+  const group = document.getElementById('stock-tooth-pos-group');
+  group.style.display = (isTooth && isIn) ? 'block' : 'none';
+  if (!isTooth || !isIn) {
+    document.querySelectorAll('[data-stp]').forEach(b => b.classList.remove('selected'));
+  }
+  const unit = document.getElementById('stock-qty-unit');
+  if (unit) unit.textContent = item === 'bolt' ? 'EA' : 'ชิ้น';
+}
+
+async function addStockTx() {
   const date = document.getElementById('stock-date').value;
   const type = document.getElementById('stock-type').value;
   const item = document.getElementById('stock-item').value;
   const qty = parseInt(document.getElementById('stock-qty').value);
   const note = document.getElementById('stock-note').value;
+  const isTooth = (item === 'tooth_ith' || item === 'tooth_sv') && type === 'in';
+  const selectedPos = isTooth
+    ? [...document.querySelectorAll('[data-stp].selected')].map(b => b.dataset.stp)
+    : [];
 
   if (!date || !qty || qty < 1) {
     toast('กรุณากรอกข้อมูลให้ครบ', 'error');
     return;
   }
-  const tx = { id: Date.now(), date, type, item, qty, note };
-  toast('⏳ กำลังบันทึก...', 'info');
-  api('addStock', { data: tx }).then(() => {
-    stockTx.unshift(tx);
+  if (isTooth && selectedPos.length === 0) {
+    toast('กรุณาเลือกตำแหน่งฟันอย่างน้อย 1 ตำแหน่ง', 'error');
+    return;
+  }
+
+  const entries = isTooth
+    ? selectedPos.map((pos, i) => ({
+        id: Date.now() + i, date, type, item, qty, note,
+        toothPos: pos
+      }))
+    : [{ id: Date.now(), date, type, item, qty, note }];
+
+  toast(`⏳ กำลังบันทึก ${entries.length} รายการ...`, 'info');
+  try {
+    for (const tx of entries) {
+      await api('addStock', { data: tx });
+      stockTx.unshift(tx);
+    }
     renderStock();
     document.getElementById('stock-qty').value = '';
     document.getElementById('stock-note').value = '';
-    toast('✅ บันทึกสต็อกสำเร็จ', 'success');
-  }).catch(() => toast('❌ บันทึกไม่สำเร็จ', 'error'));
+    document.querySelectorAll('[data-stp]').forEach(b => b.classList.remove('selected'));
+    toast(`✅ บันทึกสต็อก ${entries.length} รายการสำเร็จ`, 'success');
+  } catch(e) {
+    toast('❌ บันทึกไม่สำเร็จ', 'error');
+  }
 }
 
 function deleteStockTx(id) {
@@ -1133,10 +1236,11 @@ function renderStock() {
       <td>${fmtDate(t.date)}</td>
       <td><span class="badge ${t.type==='in' ? 'badge-in' : 'badge-out'}">${t.type==='in' ? '📥 รับเข้า' : '📤 เบิกออก'}</span></td>
       <td>${itemLabels[t.item] || t.item}</td>
+      <td style="text-align:center">${t.toothPos ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:6px;background:var(--bg3);border:1px solid var(--border);font-weight:700;font-size:12px;color:var(--accent)">${t.toothPos}</span>` : '<span style="color:var(--text3)">-</span>'}</td>
       <td style="font-family:'JetBrains Mono',monospace;font-weight:600">${t.qty}</td>
       <td style="color:var(--text3)">${t.note || '-'}</td>
       <td><button class="btn btn-ghost btn-sm" onclick="deleteStockTx(${t.id})" style="color:var(--danger)">🗑</button></td>
-    </tr>`).join('') || '<tr><td colspan="6" class="empty-state">ไม่มีรายการ</td></tr>';
+    </tr>`).join('') || '<tr><td colspan="7" class="empty-state">ไม่มีรายการ</td></tr>';
   }
 }
 
@@ -1241,7 +1345,9 @@ function renderMonthly() {
   }).join('');
 }
 
+let _reportMi = null, _reportYear = null;
 function showMonthDetail(mi, year) {
+  _reportMi = mi; _reportYear = year;
   const monthRecords = records.filter(r => {
     const d = new Date(r.date);
     return d.getFullYear() === year && d.getMonth() === mi;
@@ -1268,6 +1374,49 @@ function showMonthDetail(mi, year) {
     { label: 'พอกฟัน', val: cntWeld, c: 'c-orange' },
     { label: 'เปลี่ยน Bolt', val: cntBolt, c: 'c-purple' }
   ].map(s => `<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-value ${s.c}">${s.val}</div></div>`).join('');
+
+  // ---- STOCK BALANCE AS OF END OF MONTH ----
+  const endOfMonth = new Date(year, mi + 1, 0); // last day of month
+  endOfMonth.setHours(23,59,59);
+
+  // Calculate stock used this month (from records)
+  const monthBoltUsed = monthRecords.reduce((sum, r) => {
+    return sum + getWorkTypes(r).filter(t => t.includes('Bolt')).length;
+  }, 0);
+  const monthITHUsed  = monthRecords.filter(r => getWorkTypes(r).some(t => t.includes('ITH'))).length;
+  const monthNewUsed  = monthRecords.filter(r => getWorkTypes(r).some(t => t.includes('SV'))).length;
+
+  // Calculate running balance up to end of this month (from stockTx)
+  const balanceAtMonth = { tooth_ith: 0, tooth_sv: 0, bolt: 0 };
+  stockTx.forEach(t => {
+    const txDate = new Date(t.date);
+    if (txDate <= endOfMonth) {
+      const sign = t.type === 'in' ? 1 : -1;
+      balanceAtMonth[t.item] = (balanceAtMonth[t.item] || 0) + sign * Number(t.qty);
+    }
+  });
+
+  const stockItems = [
+    { key:'tooth_ith', label:'ฟัน ITH',  icon:'🔵', color:'var(--ith)',  used: monthITHUsed,  unit:'ชิ้น' },
+    { key:'tooth_sv',  label:'ฟัน New',  icon:'🟢', color:'var(--sv)',   used: monthNewUsed,  unit:'ชิ้น' },
+    { key:'bolt',      label:'Bolt',     icon:'🟣', color:'var(--bolt)', used: monthBoltUsed, unit:'EA'   },
+  ];
+  document.getElementById('monthly-stock-summary').innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+      ${stockItems.map(it => {
+        const bal = balanceAtMonth[it.key] || 0;
+        const isLow = bal < 10;
+        return `<div style="background:var(--bg2);border-radius:10px;padding:14px;border:1px solid ${isLow?'var(--danger)':'var(--border)'}">
+          <div style="font-size:20px;margin-bottom:6px">${it.icon}</div>
+          <div style="font-size:12px;color:var(--text3);margin-bottom:4px">${it.label}</div>
+          <div style="font-size:22px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${isLow?'var(--danger)':it.color}">${bal}</div>
+          <div style="font-size:11px;color:var(--text3);margin-bottom:8px">${it.unit} คงเหลือ${isLow?' ⚠️ ต่ำ':''}</div>
+          <div style="height:1px;background:var(--border);margin-bottom:8px"></div>
+          <div style="font-size:11px;color:var(--text3)">ใช้ในเดือนนี้</div>
+          <div style="font-size:16px;font-weight:700;color:var(--danger);font-family:'JetBrains Mono',monospace">−${it.used} <span style="font-size:11px;font-weight:400;color:var(--text3)">${it.unit}</span></div>
+        </div>`;
+      }).join('')}
+    </div>`;
 
   // ---- CHART 1: Work type bar chart ----
   const workTypes = [
@@ -1483,7 +1632,242 @@ function showMonthDetail(mi, year) {
 }
 
 function exportMonthly() {
-  toast('Export ฟีเจอร์: บันทึกข้อมูลจากหน้านี้ได้ผ่าน Ctrl+P หรือ Print to PDF', 'info');
+  if (_reportMi === null || _reportYear === null) {
+    toast('กรุณาเลือกเดือนก่อน โดยคลิกที่การ์ดเดือนที่ต้องการ', 'error');
+    return;
+  }
+  toast('⏳ กำลังสร้าง PDF...', 'info');
+  setTimeout(() => generateMonthlyPDF(_reportMi, _reportYear), 100);
+}
+
+function generateMonthlyPDF(mi, year) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = 210, margin = 14;
+  let y = 0;
+
+  const monthRecords = records.filter(r => {
+    const d = new Date(r.date);
+    return d.getFullYear() === year && d.getMonth() === mi;
+  });
+
+  const bwe1Recs = monthRecords.filter(r => r.bwe === 'BWE1');
+  const bwe2Recs = monthRecords.filter(r => r.bwe === 'BWE2');
+  const cntITH  = monthRecords.filter(r => getWorkTypes(r).some(t => t.includes('ITH'))).length;
+  const cntNew  = monthRecords.filter(r => getWorkTypes(r).some(t => t.includes('SV'))).length;
+  const cntWeld = monthRecords.filter(r => getWorkTypes(r).includes('เชื่อมพอก')).length;
+  const cntBolt = monthRecords.filter(r => getWorkTypes(r).some(t => t.includes('Bolt'))).length;
+
+  // --- Stock balance ---
+  const endOfMonth = new Date(year, mi + 1, 0);
+  endOfMonth.setHours(23,59,59);
+  const bal = { tooth_ith: 0, tooth_sv: 0, bolt: 0 };
+  stockTx.forEach(t => {
+    if (new Date(t.date) <= endOfMonth) {
+      const sign = t.type === 'in' ? 1 : -1;
+      bal[t.item] = (bal[t.item] || 0) + sign * Number(t.qty);
+    }
+  });
+
+  // ========== HEADER ==========
+  doc.setFillColor(10, 14, 26);
+  doc.rect(0, 0, W, 28, 'F');
+  doc.setFillColor(245, 158, 11);
+  doc.rect(0, 28, W, 1.5, 'F');
+
+  doc.setTextColor(245, 158, 11);
+  doc.setFontSize(16); doc.setFont('helvetica','bold');
+  doc.text('BWE Tooth Management System', margin, 11);
+  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  doc.setTextColor(148, 163, 184);
+  doc.text('Bucket Wheel Excavator - Monthly Maintenance Report', margin, 18);
+
+  const monthNameEn = ['January','February','March','April','May','June','July','August','September','October','November','December'][mi];
+  doc.setFontSize(11); doc.setFont('helvetica','bold');
+  doc.setTextColor(255,255,255);
+  doc.text(`${monthNameEn} ${year}`, W - margin, 11, { align: 'right' });
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.setTextColor(148,163,184);
+  doc.text(`Generated: ${new Date().toLocaleDateString('en-GB')}`, W - margin, 18, { align: 'right' });
+
+  y = 36;
+
+  // ========== SUMMARY STAT BOXES ==========
+  const stats = [
+    { label: 'Total Records', val: monthRecords.length, color: [245,158,11] },
+    { label: 'BWE No.1', val: bwe1Recs.length, color: [245,158,11] },
+    { label: 'BWE No.2', val: bwe2Recs.length, color: [59,130,246] },
+    { label: 'Replace ITH', val: cntITH, color: [59,130,246] },
+    { label: 'Replace New', val: cntNew, color: [16,185,129] },
+    { label: 'Re-Hard Facing', val: cntWeld, color: [249,115,22] },
+    { label: 'Replace Bolt', val: cntBolt, color: [167,139,250] },
+  ];
+  const boxW = (W - margin * 2 - 6 * 3) / 7;
+  stats.forEach((s, i) => {
+    const x = margin + i * (boxW + 3);
+    doc.setFillColor(26, 34, 53);
+    doc.roundedRect(x, y, boxW, 16, 2, 2, 'F');
+    doc.setDrawColor(...s.color); doc.setLineWidth(0.4);
+    doc.roundedRect(x, y, boxW, 16, 2, 2, 'S');
+    doc.setFontSize(14); doc.setFont('helvetica','bold');
+    doc.setTextColor(...s.color);
+    doc.text(String(s.val), x + boxW/2, y + 8.5, { align: 'center' });
+    doc.setFontSize(5.5); doc.setFont('helvetica','normal');
+    doc.setTextColor(148,163,184);
+    doc.text(s.label, x + boxW/2, y + 13.5, { align: 'center' });
+  });
+  y += 22;
+
+  // ========== STOCK BALANCE ==========
+  doc.setFillColor(26,34,53);
+  doc.roundedRect(margin, y, W - margin*2, 22, 3, 3, 'F');
+  doc.setFontSize(8); doc.setFont('helvetica','bold');
+  doc.setTextColor(148,163,184);
+  doc.text('STOCK BALANCE (End of Month)', margin + 4, y + 6);
+
+  const stockItems2 = [
+    { label:'Tooth ITH', val: bal.tooth_ith, used: cntITH, color:[59,130,246] },
+    { label:'Tooth New', val: bal.tooth_sv,  used: cntNew,  color:[16,185,129] },
+    { label:'Bolt (EA)', val: bal.bolt,      used: cntBolt, color:[167,139,250] },
+  ];
+  const sBoxW = (W - margin*2 - 8) / 3;
+  stockItems2.forEach((it, i) => {
+    const sx = margin + 4 + i * (sBoxW + 4);
+    const isLow = it.val < 10;
+    doc.setFontSize(7); doc.setFont('helvetica','normal');
+    doc.setTextColor(148,163,184);
+    doc.text(it.label, sx, y + 12);
+    doc.setFontSize(12); doc.setFont('helvetica','bold');
+    doc.setTextColor(isLow ? 239 : it.color[0], isLow ? 68 : it.color[1], isLow ? 68 : it.color[2]);
+    doc.text(String(it.val) + ' remaining', sx, y + 18.5);
+    doc.setFontSize(6.5); doc.setFont('helvetica','normal');
+    doc.setTextColor(148,163,184);
+    doc.text(`Used this month: ${it.used}`, sx + 28, y + 18.5);
+  });
+  y += 28;
+
+  // helper: per-position data
+  function calcPosData(recs) {
+    const posData = {};
+    ['A','B','C','D','E','F','G','H'].forEach(tp => posData[tp] = {ith:0,sv:0,weld:0,bolt:0});
+    recs.forEach(r => {
+      const tp = r.tooth; if (!posData[tp]) return;
+      const wt = getWorkTypes(r);
+      if (wt.some(t=>t.includes('ITH'))) posData[tp].ith++;
+      if (wt.some(t=>t.includes('SV')))  posData[tp].sv++;
+      if (wt.includes('เชื่อมพอก'))      posData[tp].weld++;
+      if (wt.some(t=>t.includes('Bolt'))) posData[tp].bolt++;
+    });
+    return posData;
+  }
+
+  // ========== BWE TABLES (side by side) ==========
+  ['BWE1','BWE2'].forEach((bwe, bi) => {
+    const recs = bi === 0 ? bwe1Recs : bwe2Recs;
+    const posData = calcPosData(recs);
+    const tableX = margin + bi * ((W - margin*2)/2 + 2);
+    const tableW = (W - margin*2)/2 - 2;
+
+    doc.setFillColor(10,14,26);
+    doc.roundedRect(tableX, y, tableW, 7, 2, 2, 'F');
+    doc.setFontSize(8); doc.setFont('helvetica','bold');
+    doc.setTextColor(bi===0 ? 245 : 59, bi===0 ? 158 : 130, bi===0 ? 11 : 246);
+    doc.text(`BWE No.${bi+1} - Tooth Summary`, tableX + tableW/2, y + 4.5, { align:'center' });
+
+    const rows = ['A','B','C','D','E','F','G','H'].map(tp => {
+      const d = posData[tp];
+      const total = d.ith + d.sv + d.weld + d.bolt;
+      return [tp, d.ith||'-', d.sv||'-', d.weld||'-', d.bolt||'-', total||'-'];
+    }).filter(r => r[5] !== '-');
+
+    if (rows.length === 0) {
+      doc.setFontSize(7); doc.setTextColor(100,116,139);
+      doc.text('No records this month', tableX + tableW/2, y + 14, { align:'center' });
+    } else {
+      doc.autoTable({
+        startY: y + 7,
+        head: [['Tooth','ITH','New','Weld','Bolt','Total']],
+        body: rows,
+        margin: { left: tableX },
+        tableWidth: tableW,
+        styles: { fontSize: 7, cellPadding: 2, fillColor:[17,24,39], textColor:[226,232,240], lineColor:[42,53,80], lineWidth:0.3 },
+        headStyles: { fillColor:[26,34,53], textColor:[148,163,184], fontStyle:'bold', fontSize:6.5 },
+        columnStyles: {
+          0: { halign:'center', fontStyle:'bold', textColor:[245,158,11] },
+          1: { halign:'center', textColor:[59,130,246] },
+          2: { halign:'center', textColor:[16,185,129] },
+          3: { halign:'center', textColor:[249,115,22] },
+          4: { halign:'center', textColor:[167,139,250] },
+          5: { halign:'center', fontStyle:'bold', textColor:[226,232,240] },
+        },
+        didParseCell: (data) => {
+          if (data.row.section === 'body') data.cell.styles.fillColor = [17,24,39];
+        }
+      });
+    }
+  });
+  y = Math.max(doc.lastAutoTable?.finalY || y, y) + 8;
+
+  // ========== ALL RECORDS TABLE ==========
+  if (monthRecords.length > 0) {
+    doc.setFillColor(10,14,26);
+    doc.roundedRect(margin, y, W - margin*2, 7, 2, 2, 'F');
+    doc.setFontSize(8); doc.setFont('helvetica','bold');
+    doc.setTextColor(245,158,11);
+    doc.text('All Maintenance Records', margin + (W-margin*2)/2, y + 4.5, { align:'center' });
+    y += 7;
+
+    const allRows = monthRecords.map(r => {
+      const wt = getWorkTypes(r);
+      const types = [];
+      if (wt.some(t=>t.includes('ITH'))) types.push('ITH');
+      if (wt.some(t=>t.includes('SV')))  types.push('New');
+      if (wt.includes('เชื่อมพอก'))      types.push('Weld');
+      const bolts = wt.filter(t=>t.includes('Bolt')).length;
+      if (bolts > 0) types.push(`Bolt x${bolts}`);
+      return [r.date, r.bwe, `#${r.bucket}`, `Tooth ${r.tooth}`, types.join(', '), r.smu||'-'];
+    });
+
+    doc.autoTable({
+      startY: y,
+      head: [['Date','BWE','Bucket','Tooth','Work Type','SMU']],
+      body: allRows,
+      margin: { left: margin, right: margin },
+      styles: { fontSize: 7, cellPadding: 2.2, fillColor:[17,24,39], textColor:[226,232,240], lineColor:[42,53,80], lineWidth:0.3 },
+      headStyles: { fillColor:[26,34,53], textColor:[148,163,184], fontStyle:'bold', fontSize:7 },
+      columnStyles: {
+        0: { cellWidth: 22 },
+        1: { halign:'center', cellWidth: 18, textColor:[245,158,11] },
+        2: { halign:'center', cellWidth: 16 },
+        3: { halign:'center', cellWidth: 18, fontStyle:'bold' },
+        4: { cellWidth: 60 },
+        5: { halign:'center' },
+      },
+      alternateRowStyles: { fillColor:[20,28,45] },
+      didParseCell: (data) => {
+        if (data.column.index === 1 && data.row.section === 'body') {
+          data.cell.styles.textColor = data.cell.raw === 'BWE1' ? [245,158,11] : [59,130,246];
+        }
+      }
+    });
+  }
+
+  // ========== FOOTER ==========
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let p = 1; p <= pageCount; p++) {
+    doc.setPage(p);
+    const fY = 297 - 8;
+    doc.setFillColor(10,14,26);
+    doc.rect(0, fY - 4, W, 12, 'F');
+    doc.setFontSize(7); doc.setTextColor(100,116,139);
+    doc.text('BWE Tooth Management System', margin, fY);
+    doc.text(`Page ${p} of ${pageCount}`, W - margin, fY, { align:'right' });
+    doc.text(`Report: ${monthNameEn} ${year}`, W/2, fY, { align:'center' });
+  }
+
+  const filename = `BWE_Report_${monthNameEn}_${year}.pdf`;
+  doc.save(filename);
+  toast(`✅ ดาวน์โหลด ${filename} สำเร็จ`, 'success');
 }
 
 // ===================== DASHBOARD =====================
