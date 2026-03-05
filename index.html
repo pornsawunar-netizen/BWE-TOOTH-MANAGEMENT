@@ -848,6 +848,9 @@ async function loadData() {
     const [r, s] = await Promise.all([ api('getRecords'), api('getStock') ]);
     records  = Array.isArray(r) ? r : [];
     stockTx  = Array.isArray(s) ? s : [];
+    // Debug: ตรวจสอบ toothPos ใน stockTx
+    const withPos = stockTx.filter(t => t.toothPos && t.toothPos !== '');
+    console.log('stockTx total:', stockTx.length, '| มี toothPos:', withPos.length, '| ตัวอย่าง:', JSON.stringify(withPos.slice(0,3)));
   } catch(e) {
     toast('❌ โหลดข้อมูลไม่สำเร็จ กรุณาตรวจสอบการเชื่อมต่อ', 'error');
   }
@@ -1137,35 +1140,29 @@ function getStockBalance() {
 }
 
 function getStockBalanceByPos(itemFilter) {
-  // คำนวณยอดตำแหน่ง A-D จาก 2 แหล่ง:
-  // 1. รับเข้า: จาก stockTx ที่มี toothPos + type=in
-  // 2. เบิกออก: คำนวณจาก records (การติดตั้งฟัน) ผ่าน INSTALL_TO_STOCK_TAG
+  // รับเข้า: จาก stockTx ที่มี toothPos + type=in ตาม itemFilter
+  // เบิกออก: จาก stockTx ที่มี toothPos + type=out ตาม itemFilter (ทั้ง manual และ autoDeduct)
+  //          + จาก records การติดตั้งฟัน (สำหรับข้อมูลเก่าที่ไม่มี autoDeduct ใน stockTx)
   const pos = { A: 0, B: 0, C: 0, D: 0 };
 
-  // --- รับเข้า: จาก stockTx ---
+  // รับเข้า
   stockTx.forEach(t => {
     if (t.type !== 'in') return;
     if (!t.toothPos || !pos.hasOwnProperty(t.toothPos)) return;
-    if (itemFilter) {
-      if (t.item !== itemFilter) return;
-    } else {
-      if (t.item !== 'tooth_ith' && t.item !== 'tooth_sv') return;
-    }
+    if (itemFilter && t.item !== itemFilter) return;
+    if (!itemFilter && t.item !== 'tooth_ith' && t.item !== 'tooth_sv') return;
     pos[t.toothPos] += Number(t.qty);
   });
 
-  // --- เบิกออก: คำนวณจาก records การติดตั้งฟัน ---
-  records.forEach(r => {
-    const wt = getWorkTypes(r);
-    const hasITH = wt.some(t => t.includes('ITH'));
-    const hasNew  = wt.some(t => t.includes('SV'));
-    if (!hasITH && !hasNew) return;
-    if (itemFilter === 'tooth_ith' && !hasITH) return;
-    if (itemFilter === 'tooth_sv'  && !hasNew)  return;
-    const stockTag = INSTALL_TO_STOCK_TAG[r.tooth];
-    if (stockTag && pos.hasOwnProperty(stockTag)) {
-      pos[stockTag] -= 1;
-    }
+  // เบิกออก — ใช้ stockTx เป็นหลัก (ครอบคลุมทั้ง manual และ autoDeduct ที่ save ไว้แล้ว)
+  const autoDeductIds = new Set();
+  stockTx.forEach(t => {
+    if (t.type !== 'out') return;
+    if (!t.toothPos || !pos.hasOwnProperty(t.toothPos)) return;
+    if (itemFilter && t.item !== itemFilter) return;
+    if (!itemFilter && t.item !== 'tooth_ith' && t.item !== 'tooth_sv') return;
+    pos[t.toothPos] -= Number(t.qty);
+    if (t.autoDeduct) autoDeductIds.add(String(t.id));
   });
 
   return pos;
