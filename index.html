@@ -1137,18 +1137,37 @@ function getStockBalance() {
 }
 
 function getStockBalanceByPos(itemFilter) {
-  // itemFilter: 'tooth_ith' | 'tooth_sv' | null (both)
+  // คำนวณยอดตำแหน่ง A-D จาก 2 แหล่ง:
+  // 1. รับเข้า: จาก stockTx ที่มี toothPos + type=in
+  // 2. เบิกออก: คำนวณจาก records (การติดตั้งฟัน) ผ่าน INSTALL_TO_STOCK_TAG
   const pos = { A: 0, B: 0, C: 0, D: 0 };
+
+  // --- รับเข้า: จาก stockTx ---
   stockTx.forEach(t => {
+    if (t.type !== 'in') return;
     if (!t.toothPos || !pos.hasOwnProperty(t.toothPos)) return;
     if (itemFilter) {
       if (t.item !== itemFilter) return;
     } else {
       if (t.item !== 'tooth_ith' && t.item !== 'tooth_sv') return;
     }
-    const sign = t.type === 'in' ? 1 : -1;
-    pos[t.toothPos] += sign * Number(t.qty);
+    pos[t.toothPos] += Number(t.qty);
   });
+
+  // --- เบิกออก: คำนวณจาก records การติดตั้งฟัน ---
+  records.forEach(r => {
+    const wt = getWorkTypes(r);
+    const hasITH = wt.some(t => t.includes('ITH'));
+    const hasNew  = wt.some(t => t.includes('SV'));
+    if (!hasITH && !hasNew) return;
+    if (itemFilter === 'tooth_ith' && !hasITH) return;
+    if (itemFilter === 'tooth_sv'  && !hasNew)  return;
+    const stockTag = INSTALL_TO_STOCK_TAG[r.tooth];
+    if (stockTag && pos.hasOwnProperty(stockTag)) {
+      pos[stockTag] -= 1;
+    }
+  });
+
   return pos;
 }
 
