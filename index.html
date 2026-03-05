@@ -848,10 +848,18 @@ async function loadData() {
     const [r, s] = await Promise.all([ api('getRecords'), api('getStock') ]);
     records  = Array.isArray(r) ? r : [];
     stockTx  = Array.isArray(s) ? s : [];
-    // Debug: ตรวจสอบ toothPos ใน stockTx
-    const withPos = stockTx.filter(t => t.toothPos && t.toothPos !== '');
-    console.log('stockTx total:', stockTx.length, '| มี toothPos:', withPos.length, '| ตัวอย่าง:', JSON.stringify(withPos.slice(0,3)));
+    // Debug raw
+    console.log('=== DEBUG loadData ===');
+    console.log('records:', records.length);
+    console.log('stockTx:', stockTx.length);
+    if (stockTx.length > 0) {
+      console.log('stockTx[0] raw:', JSON.stringify(stockTx[0]));
+      console.log('stockTx keys:', Object.keys(stockTx[0]).join(', '));
+    } else {
+      console.log('stockTx ว่างเปล่า — raw API response:', JSON.stringify(s).slice(0, 300));
+    }
   } catch(e) {
+    console.error('loadData error:', e);
     toast('❌ โหลดข้อมูลไม่สำเร็จ กรุณาตรวจสอบการเชื่อมต่อ', 'error');
   }
   document.getElementById('loading-overlay').style.display = 'none';
