@@ -679,7 +679,7 @@
           <option value="bolt">Bolt (Set)</option>
         </select>
       </div>
-      <div class="form-group" id="stock-tooth-pos-group" style="display:none">
+      <div class="form-group" id="stock-tooth-pos-group" style="display:block">
         <label>ตำแหน่งฟัน <span style="color:var(--text3);font-weight:400;font-size:11px">(เลือกได้หลายตำแหน่ง)</span></label>
         <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">
           <button type="button" class="tooth-btn" data-stp="A" onclick="toggleStockTooth(this)">A</button>
@@ -1180,13 +1180,11 @@ function toggleStockTooth(btn) {
   btn.classList.toggle('selected');
 }
 function toggleStockToothPos() {
-  const type = document.getElementById('stock-type').value;
   const item = document.getElementById('stock-item').value;
   const isTooth = item === 'tooth_ith' || item === 'tooth_sv';
-  const isIn = type === 'in';
   const group = document.getElementById('stock-tooth-pos-group');
-  group.style.display = (isTooth && isIn) ? 'block' : 'none';
-  if (!isTooth || !isIn) {
+  group.style.display = isTooth ? 'block' : 'none';
+  if (!isTooth) {
     document.querySelectorAll('[data-stp]').forEach(b => b.classList.remove('selected'));
   }
   const unit = document.getElementById('stock-qty-unit');
@@ -1199,7 +1197,7 @@ async function addStockTx() {
   const item = document.getElementById('stock-item').value;
   const qty = parseInt(document.getElementById('stock-qty').value);
   const note = document.getElementById('stock-note').value;
-  const isTooth = (item === 'tooth_ith' || item === 'tooth_sv') && type === 'in';
+  const isTooth = item === 'tooth_ith' || item === 'tooth_sv';
   const selectedPos = isTooth
     ? [...document.querySelectorAll('[data-stp].selected')].map(b => b.dataset.stp)
     : [];
@@ -1246,59 +1244,51 @@ function deleteStockTx(id) {
 }
 
 function renderStock() {
-  const balance  = getStockBalance();
-  const posBalITH = getStockBalanceByPos('tooth_ith');
-  const posBalNew = getStockBalanceByPos('tooth_sv');
-
-  function makePosRows(posBal, color) {
-    return ['A','B','C','D'].map(p => {
-      const v = posBal[p] || 0;
-      const isLow = v < 5;
-      const pct = Math.min(100, Math.max(0, (v/50)*100));
-      const barColor = isLow ? 'var(--danger)' : color;
-      const numColor = isLow ? 'var(--danger)' : color;
-      return '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">'
-        + '<div style="width:28px;height:28px;border-radius:7px;background:var(--bg);border:1.5px solid '+(isLow?'var(--danger)':'var(--border)')+';display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:var(--accent);flex-shrink:0">'+p+'</div>'
-        + '<div style="flex:1">'
-          + '<div style="display:flex;justify-content:space-between;margin-bottom:3px">'
-            + '<span style="font-size:11px;color:var(--text3)">ตำแหน่ง '+p+'</span>'
-            + '<span style="font-size:12px;font-weight:700;font-family:JetBrains Mono,monospace;color:'+numColor+'">'+v+(isLow?' ⚠️':'')+'</span>'
-          + '</div>'
-          + '<div style="height:6px;background:var(--bg);border-radius:3px;overflow:hidden">'
-            + '<div style="height:100%;width:'+pct+'%;background:'+barColor+';border-radius:3px;transition:width 0.4s"></div>'
-          + '</div>'
-        + '</div>'
-      + '</div>';
-    }).join('');
-  }
-
-  function makeCard(icon, label, val, color, pct, posRows) {
-    const low = val < 10;
-    return '<div style="margin-bottom:12px;padding:14px;background:var(--bg3);border-radius:8px;border:1px solid '+(low?'var(--danger)':'var(--border)')+';">'
-      + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
-        + '<span style="font-size:14px;font-weight:600">'+icon+' '+label+'</span>'
-        + '<span style="font-size:24px;font-weight:700;font-family:JetBrains Mono,monospace;color:'+(val<0?'var(--danger)':color)+'">'+val+'</span>'
-      + '</div>'
-      + (low ? '<div style="margin:6px 0;padding:6px 10px;font-size:11px;background:rgba(239,68,68,0.1);border:1px solid var(--danger);border-radius:6px;color:var(--danger)">⚠️ สต็อกต่ำ</div>' : '')
-      + '<div class="stock-bar" style="margin-bottom:'+(posRows?'12':'0')+'px"><div class="stock-fill" style="width:'+pct+'%;background:'+color+'"></div></div>'
-      + (posRows ? '<div style="font-size:11px;font-weight:600;color:var(--text3);margin-bottom:8px">แยกตำแหน่ง</div>'+posRows : '')
-      + '</div>';
-  }
+  const balance = getStockBalance();
+  const posTotal = getStockBalanceByPos(null); // รวม ITH+New ทุกตำแหน่ง
 
   const ithVal  = balance.tooth_ith || 0;
   const svVal   = balance.tooth_sv  || 0;
   const boltVal = balance.bolt      || 0;
   const maxRef  = 200;
-  const ithPct  = Math.min(100, Math.max(0, (ithVal/maxRef)*100));
-  const svPct   = Math.min(100, Math.max(0, (svVal/maxRef)*100));
-  const boltPct = Math.min(100, Math.max(0, (boltVal/maxRef)*100));
 
   const cards = document.getElementById('stock-cards');
   if (cards) {
+    // การ์ดตำแหน่ง A-D (รวม ITH+New)
+    const posCards = ['A','B','C','D'].map(p => {
+      const v = posTotal[p] || 0;
+      const isLow = v < 5;
+      const pct = Math.min(100, Math.max(0, (v/50)*100));
+      const color = isLow ? 'var(--danger)' : 'var(--accent)';
+      return '<div style="flex:1;min-width:120px;padding:14px;background:var(--bg3);border-radius:8px;border:1.5px solid '+(isLow?'var(--danger)':'var(--border)')+';text-align:center">'
+        + '<div style="font-size:11px;color:var(--text3);margin-bottom:4px">ตำแหน่ง</div>'
+        + '<div style="font-size:28px;font-weight:700;color:var(--accent);line-height:1">'+p+'</div>'
+        + '<div style="font-size:22px;font-weight:700;font-family:JetBrains Mono,monospace;color:'+color+';margin:6px 0">'+v+'</div>'
+        + '<div style="font-size:10px;color:var(--text3)">ชิ้น</div>'
+        + (isLow ? '<div style="font-size:10px;color:var(--danger);margin-top:4px">⚠️ ต่ำ</div>' : '')
+        + '<div style="height:4px;background:var(--bg);border-radius:2px;margin-top:8px;overflow:hidden">'
+          + '<div style="height:100%;width:'+pct+'%;background:'+color+';border-radius:2px;transition:width 0.4s"></div>'
+        + '</div>'
+        + '</div>';
+    }).join('');
+
+    // การ์ด ITH / New / Bolt รวม
+    function makeSumCard(icon, label, val, color) {
+      const low = val < 10;
+      const pct = Math.min(100, Math.max(0, (val/maxRef)*100));
+      return '<div style="padding:12px 14px;background:var(--bg3);border-radius:8px;border:1px solid '+(low?'var(--danger)':'var(--border)')+';display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+        + '<span style="font-size:13px;font-weight:600">'+icon+' '+label+'</span>'
+        + '<span style="font-size:20px;font-weight:700;font-family:JetBrains Mono,monospace;color:'+(val<0?'var(--danger)':color)+'">'+val+(low?' ⚠️':'')+'</span>'
+        + '</div>';
+    }
+
     cards.innerHTML =
-      makeCard('🔵','ฟัน ITH',  ithVal,  'var(--ith)',  ithPct,  makePosRows(posBalITH,'var(--ith)')) +
-      makeCard('🟢','ฟัน New',  svVal,   'var(--sv)',   svPct,   makePosRows(posBalNew,'var(--sv)')) +
-      makeCard('🟣','Bolt (Set)',boltVal, 'var(--bolt)', boltPct, null);
+      '<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:8px">🦷 ยอดฟันแยกตำแหน่ง</div>'
+      + '<div style="display:flex;gap:8px;margin-bottom:16px">' + posCards + '</div>'
+      + '<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:8px">📦 ยอดรวมตามประเภท</div>'
+      + makeSumCard('🔵','ฟัน ITH',  ithVal,  'var(--ith)')
+      + makeSumCard('🟢','ฟัน New',  svVal,   'var(--sv)')
+      + makeSumCard('🟣','Bolt',     boltVal, 'var(--bolt)');
   }
 
   const itemLabels = { tooth_ith: '🔵 ฟัน ITH', tooth_sv: '🟢 ฟัน New', bolt: '🟣 Bolt' };
