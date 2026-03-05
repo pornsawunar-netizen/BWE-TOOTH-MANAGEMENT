@@ -465,6 +465,7 @@
     <button class="nav-tab" onclick="showPage('wheel')">🔵 สถานะรายฟัน</button>
     <button class="nav-tab" onclick="showPage('stock')">📦 คลังฟัน/Bolt</button>
     <button class="nav-tab" onclick="showPage('monthly')">📅 สรุปรายเดือน</button>
+    <button class="nav-tab" onclick="showPage('yearly')">📆 สรุปรายปี</button>
   </nav>
 </header>
 
@@ -810,17 +811,89 @@
         </div>
       </div>
 
-      <div class="section-sep"></div>
-      <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:10px">รายการทั้งหมดในเดือนนี้</div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>วันที่</th><th>BWE</th><th>บุ้งกี๋</th><th>ฟัน</th><th>งาน</th><th>SMU</th></tr></thead>
-          <tbody id="monthly-all-tbody"></tbody>
-        </table>
+
+
+      <!-- SIGNATURE SECTION -->
+      <div style="margin-top:32px;padding:20px;background:var(--bg3);border-radius:10px;border:1px solid var(--border)">
+        <div style="font-size:13px;font-weight:600;color:var(--text3);margin-bottom:20px">✍️ ลงนามรับรอง</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:24px">
+          <div style="text-align:center">
+            <div style="height:60px;background:#ffffff;border-radius:6px;border:1px solid #ccc;margin-bottom:8px;display:flex;align-items:center;justify-content:center;padding:4px 8px">
+              <input id="sig-reported" type="text" placeholder="ลงชื่อ" style="background:transparent;border:none;outline:none;text-align:center;font-size:14px;color:#111;width:100%;font-family:inherit">
+            </div>
+            <div style="font-size:12px;font-weight:700;color:var(--accent)">Reported</div>
+          </div>
+          <div style="text-align:center">
+            <div style="height:60px;background:#ffffff;border-radius:6px;border:1px solid #ccc;margin-bottom:8px;display:flex;align-items:center;justify-content:center;padding:4px 8px">
+              <input id="sig-checked" type="text" placeholder="ลงชื่อ" style="background:transparent;border:none;outline:none;text-align:center;font-size:14px;color:#111;width:100%;font-family:inherit">
+            </div>
+            <div style="font-size:12px;font-weight:700;color:var(--accent)">Checked</div>
+          </div>
+          <div style="text-align:center">
+            <div style="height:60px;background:#ffffff;border-radius:6px;border:1px solid #ccc;margin-bottom:8px;display:flex;align-items:center;justify-content:center;padding:4px 8px">
+              <input id="sig-approved" type="text" placeholder="ลงชื่อ" style="background:transparent;border:none;outline:none;text-align:center;font-size:14px;color:#111;width:100%;font-family:inherit">
+            </div>
+            <div style="font-size:12px;font-weight:700;color:var(--accent)">Approved</div>
+          </div>
+        </div>
       </div>
+
     </div>
   </div>
 </div>
+
+<!-- ===================== YEARLY SUMMARY PAGE ===================== -->
+<div id="page-yearly" class="page container">
+  <div class="page-title">📆 สรุปรายปี</div>
+  <div class="page-sub">รายงานสรุปงานซ่อมฟัน Bucket Wheel Excavator ประจำปี</div>
+
+  <div class="filter-bar" style="margin-bottom:20px">
+    <label style="text-transform:none;font-size:14px;color:var(--text2)">เลือกปี:</label>
+    <select id="yearly-year" onchange="renderYearly()">
+      <option value="2025">2025</option>
+      <option value="2026" selected>2026</option>
+    </select>
+    <button class="btn btn-primary btn-sm" onclick="exportYearly()">⬇️ Export Report</button>
+  </div>
+
+  <!-- YEARLY STAT CARDS -->
+  <div class="grid-3" id="yearly-stats" style="margin-bottom:20px"></div>
+
+  <!-- MONTHLY BREAKDOWN TABLE -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title" style="font-size:13px;margin-bottom:14px">📊 สรุปรายเดือน</div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>เดือน</th>
+            <th>รวมงาน</th>
+            <th style="color:var(--ith)">ITH</th>
+            <th style="color:var(--sv)">New</th>
+            <th style="color:var(--weld)">Re-Hard Facing</th>
+            <th style="color:var(--bolt)">Bolt</th>
+            <th>BWE1</th>
+            <th>BWE2</th>
+          </tr>
+        </thead>
+        <tbody id="yearly-month-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CHART PLACEHOLDER -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title" style="font-size:13px;margin-bottom:14px">📈 งานซ่อมรายเดือน</div>
+    <div id="yearly-chart" style="display:flex;align-items:flex-end;gap:6px;height:120px;padding:0 8px"></div>
+  </div>
+
+  <!-- POSITION PRODUCTION CARD -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title" style="font-size:13px;margin-bottom:14px">🏭 ฟันที่ผลิต แยกตำแหน่ง (รับเข้าสต็อกทั้งปี)</div>
+    <div id="yearly-pos-cards" style="display:flex;gap:12px;flex-wrap:wrap"></div>
+  </div>
+</div>
+
 
 <!-- TOAST -->
 <div id="toast" style="position:fixed;bottom:24px;right:24px;background:#1e293b;border:1px solid var(--border);border-radius:10px;padding:12px 20px;color:var(--text);font-size:14px;display:none;z-index:300;transition:all 0.3s"></div>
@@ -863,7 +936,7 @@ async function loadData() {
     toast('❌ โหลดข้อมูลไม่สำเร็จ กรุณาตรวจสอบการเชื่อมต่อ', 'error');
   }
   document.getElementById('loading-overlay').style.display = 'none';
-  renderDashboard(); renderRecordTable(); renderStock(); renderWheel(); renderMonthly();
+  renderDashboard(); renderRecordTable(); renderStock(); renderWheel(); renderMonthly(); renderYearly();
 }
 
 // Default tooth status per bucket (from real data)
@@ -917,6 +990,7 @@ function showPage(id) {
   if (id === 'wheel') renderWheel();
   if (id === 'stock') renderStock();
   if (id === 'monthly') renderMonthly();
+  if (id === 'yearly') renderYearly();
 }
 
 // ===================== RECORD =====================
@@ -1286,11 +1360,15 @@ function renderStock() {
     }).join('');
 
     // การ์ดรวม Bolt
-    function makeSumCard(icon, label, val, color) {
-      const low = val < 10;
-      return '<div style="padding:12px 14px;background:var(--bg3);border-radius:8px;border:1px solid '+(low?'var(--danger)':'var(--border)')+';display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-        + '<span style="font-size:13px;font-weight:600">'+icon+' '+label+'</span>'
-        + '<span style="font-size:20px;font-weight:700;font-family:JetBrains Mono,monospace;color:'+(val<0?'var(--danger)':color)+'">'+val+(low?' ⚠️':'')+'</span>'
+    function makeSumCard(icon, label, val, color, lowThreshold) {
+      const thr = lowThreshold || 10;
+      const low = val < thr;
+      return '<div style="padding:12px 14px;background:var(--bg3);border-radius:8px;border:1px solid '+(low?'var(--danger)':'var(--border)')+';margin-bottom:8px">'
+        + '<div style="display:flex;justify-content:space-between;align-items:center">'
+          + '<span style="font-size:13px;font-weight:600">'+icon+' '+label+'</span>'
+          + '<span style="font-size:20px;font-weight:700;font-family:JetBrains Mono,monospace;color:'+(val<0?'var(--danger)':color)+'">'+val+'</span>'
+        + '</div>'
+        + (low ? '<div style="margin-top:6px;padding:5px 8px;background:rgba(239,68,68,0.1);border-radius:5px;font-size:11px;color:var(--danger)">⚠️ สต็อกต่ำ — เหลือ '+val+' EA (ต่ำกว่า '+thr+')</div>' : '')
         + '</div>';
     }
 
@@ -1298,9 +1376,9 @@ function renderStock() {
       '<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:8px">🦷 ยอดฟันแยกตำแหน่ง</div>'
       + '<div style="display:flex;gap:8px;margin-bottom:16px">' + posCards + '</div>'
       + '<div style="font-size:12px;font-weight:600;color:var(--text3);margin-bottom:8px">📦 ยอดรวม</div>'
-      + makeSumCard('🔵','ฟัน ITH', ithVal,  'var(--ith)')
-      + makeSumCard('🟢','ฟัน New', svVal,   'var(--sv)')
-      + makeSumCard('🟣','Bolt',    boltVal, 'var(--bolt)');
+      + makeSumCard('🔵','ฟัน ITH', ithVal,  'var(--ith)',  10)
+      + makeSumCard('🟢','ฟัน New', svVal,   'var(--sv)',   10)
+      + makeSumCard('🟣','Bolt',    boltVal, 'var(--bolt)', 500);
   }
 
   const itemLabels = { tooth_ith: '🔵 ฟัน ITH', tooth_sv: '🟢 ฟัน New', bolt: '🟣 Bolt' };
@@ -1444,16 +1522,34 @@ function showMonthDetail(mi, year) {
   const cntBolt = monthRecords.filter(r=>getWorkTypes(r).some(t=>t.includes('Bolt'))).length;
 
   // ---- STAT CARDS ----
+  const cntWeld1 = bwe1.filter(r => getWorkTypes(r).includes('เชื่อมพอก')).length;
+  const cntWeld2 = bwe2.filter(r => getWorkTypes(r).includes('เชื่อมพอก')).length;
+  const cntITH1  = bwe1.filter(r => getWorkTypes(r).some(t => t.includes('ITH'))).length;
+  const cntITH2  = bwe2.filter(r => getWorkTypes(r).some(t => t.includes('ITH'))).length;
+  const cntNew1  = bwe1.filter(r => getWorkTypes(r).some(t => t.includes('SV'))).length;
+  const cntNew2  = bwe2.filter(r => getWorkTypes(r).some(t => t.includes('SV'))).length;
+  const cntBolt1 = bwe1.filter(r => getWorkTypes(r).some(t => t.includes('Bolt'))).length;
+  const cntBolt2 = bwe2.filter(r => getWorkTypes(r).some(t => t.includes('Bolt'))).length;
+
   const stats = document.getElementById('monthly-summary-stats');
-  stats.innerHTML = [
-    { label: 'รวมงานซ่อม', val: monthRecords.length, c: 'c-amber' },
-    { label: 'BWE No.1', val: bwe1.length, c: 'c-amber' },
-    { label: 'BWE No.2', val: bwe2.length, c: 'c-blue' },
-    { label: 'เปลี่ยนฟัน ITH', val: cntITH, c: 'c-blue' },
-    { label: 'เปลี่ยนฟันใหม่', val: cntNew, c: 'c-green' },
-    { label: 'พอกฟัน', val: cntWeld, c: 'c-orange' },
-    { label: 'เปลี่ยน Bolt', val: cntBolt, c: 'c-purple' }
-  ].map(s => `<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-value ${s.c}">${s.val}</div></div>`).join('');
+  const makeStatCard = (label, val, c) =>
+    '<div class="stat-card"><div class="stat-label">'+label+'</div><div class="stat-value '+c+'">'+val+'</div></div>';
+  const makeStatCard2 = (label, v1, v2, c) =>
+    '<div class="stat-card"><div class="stat-label">'+label+'</div>'
+    + '<div style="display:flex;justify-content:center;gap:12px;margin-top:4px">'
+      + '<div style="text-align:center"><div style="font-size:9px;color:var(--accent);margin-bottom:2px">BWE1</div><div class="stat-value '+c+'" style="font-size:18px">'+v1+'</div></div>'
+      + '<div style="width:1px;background:var(--border)"></div>'
+      + '<div style="text-align:center"><div style="font-size:9px;color:var(--ith);margin-bottom:2px">BWE2</div><div class="stat-value '+c+'" style="font-size:18px">'+v2+'</div></div>'
+    + '</div></div>';
+
+  stats.innerHTML =
+    makeStatCard('รวมงานซ่อม', monthRecords.length, 'c-amber') +
+    makeStatCard('BWE No.1', bwe1.length, 'c-amber') +
+    makeStatCard('BWE No.2', bwe2.length, 'c-blue') +
+    makeStatCard2('เปลี่ยนฟัน ITH', cntITH1, cntITH2, 'c-blue') +
+    makeStatCard2('เปลี่ยนฟันใหม่', cntNew1, cntNew2, 'c-green') +
+    makeStatCard2('พอกฟัน', cntWeld1, cntWeld2, 'c-orange') +
+    makeStatCard2('เปลี่ยน Bolt', cntBolt1, cntBolt2, 'c-purple');
 
   // ---- STOCK BALANCE AS OF END OF MONTH ----
   const endOfMonth = new Date(year, mi + 1, 0); // last day of month
@@ -1689,24 +1785,7 @@ function showMonthDetail(mi, year) {
     </div>`;
 
   // ---- ALL RECORDS TABLE ----
-  const allTbody = document.getElementById('monthly-all-tbody');
-  allTbody.innerHTML = monthRecords.map(r => {
-    const types = getWorkTypes(r);
-    const badges = [...new Set(types.map(t => {
-      if (t.includes('ITH')) return `<span class="badge badge-ith">ITH</span>`;
-      if (t.includes('SV')) return `<span class="badge badge-sv">New</span>`;
-      if (t.includes('พอก')) return `<span class="badge badge-weld">พอก</span>`;
-      if (t.includes('Bolt')) return `<span class="badge badge-bolt">Bolt</span>`;
-    }).filter(Boolean))].join(' ');
-    return `<tr>
-      <td>${fmtDate(r.date)}</td>
-      <td><span class="tag ${r.bwe==='BWE1'?'tag-bwe1':'tag-bwe2'}">${r.bwe}</span></td>
-      <td>#${r.bucket}</td>
-      <td>ฟัน ${r.tooth}</td>
-      <td>${badges}</td>
-      <td style="font-size:11px;color:var(--text3)">${r.smu || '-'}</td>
-    </tr>`;
-  }).join('') || '<tr><td colspan="6" style="color:var(--text3);text-align:center;padding:16px">ไม่มีข้อมูล</td></tr>';
+
 
   document.getElementById('monthly-detail').scrollIntoView({ behavior:'smooth' });
 }
@@ -1750,37 +1829,45 @@ function generateMonthlyPDF(mi, year) {
   });
 
   // ========== HEADER ==========
-  doc.setFillColor(10, 14, 26);
-  doc.rect(0, 0, W, 28, 'F');
-  doc.setFillColor(245, 158, 11);
-  doc.rect(0, 28, W, 1.5, 'F');
+  const LOGO_B64 = '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';
 
+  doc.setFillColor(10, 14, 26);
+  doc.rect(0, 0, W, 32, 'F');
+  doc.setFillColor(245, 158, 11);
+  doc.rect(0, 32, W, 1.5, 'F');
+
+  // Logo top-left
+  try {
+    doc.addImage('data:image/png;base64,' + LOGO_B64, 'PNG', margin, 4, 38, 24);
+  } catch(e) {}
+
+  // Title (shifted right to make room for logo)
   doc.setTextColor(245, 158, 11);
-  doc.setFontSize(16); doc.setFont('helvetica','bold');
-  doc.text('BWE Tooth Management System', margin, 11);
-  doc.setFontSize(10); doc.setFont('helvetica','normal');
+  doc.setFontSize(14); doc.setFont('helvetica','bold');
+  doc.text('BWE Tooth Management System', margin + 42, 12);
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
   doc.setTextColor(148, 163, 184);
-  doc.text('Bucket Wheel Excavator - Monthly Maintenance Report', margin, 18);
+  doc.text('Bucket Wheel Excavator - Monthly Maintenance Report', margin + 42, 19);
 
   const monthNameEn = ['January','February','March','April','May','June','July','August','September','October','November','December'][mi];
   doc.setFontSize(11); doc.setFont('helvetica','bold');
   doc.setTextColor(255,255,255);
-  doc.text(`${monthNameEn} ${year}`, W - margin, 11, { align: 'right' });
-  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.text(monthNameEn + ' ' + year, W - margin, 12, { align: 'right' });
+  doc.setFontSize(8); doc.setFont('helvetica','normal');
   doc.setTextColor(148,163,184);
-  doc.text(`Generated: ${new Date().toLocaleDateString('en-GB')}`, W - margin, 18, { align: 'right' });
+  doc.text('Generated: ' + new Date().toLocaleDateString('en-GB'), W - margin, 19, { align: 'right' });
 
-  y = 36;
+  y = 40;
 
   // ========== SUMMARY STAT BOXES ==========
   const stats = [
-    { label: 'Total Records', val: monthRecords.length, color: [245,158,11] },
-    { label: 'BWE No.1', val: bwe1Recs.length, color: [245,158,11] },
-    { label: 'BWE No.2', val: bwe2Recs.length, color: [59,130,246] },
-    { label: 'Replace ITH', val: cntITH, color: [59,130,246] },
-    { label: 'Replace New', val: cntNew, color: [16,185,129] },
-    { label: 'Re-Hard Facing', val: cntWeld, color: [249,115,22] },
-    { label: 'Replace Bolt', val: cntBolt, color: [167,139,250] },
+    { label: 'Total Records',  val: monthRecords.length, color: [245,158,11] },
+    { label: 'BWE No.1',       val: bwe1Recs.length,     color: [245,158,11] },
+    { label: 'BWE No.2',       val: bwe2Recs.length,     color: [59,130,246] },
+    { label: 'Replace ITH',    val: cntITH,              color: [59,130,246] },
+    { label: 'Replace New',    val: cntNew,              color: [16,185,129] },
+    { label: 'Re-Hard Facing', val: cntWeld,             color: [249,115,22] },
+    { label: 'Replace Bolt',   val: cntBolt,             color: [167,139,250] },
   ];
   const boxW = (W - margin * 2 - 6 * 3) / 7;
   stats.forEach((s, i) => {
@@ -1822,7 +1909,7 @@ function generateMonthlyPDF(mi, year) {
     doc.text(String(it.val) + ' remaining', sx, y + 18.5);
     doc.setFontSize(6.5); doc.setFont('helvetica','normal');
     doc.setTextColor(148,163,184);
-    doc.text(`Used this month: ${it.used}`, sx + 28, y + 18.5);
+    doc.text('Used this month: ' + it.used, sx + 28, y + 18.5);
   });
   y += 28;
 
@@ -1852,7 +1939,7 @@ function generateMonthlyPDF(mi, year) {
     doc.roundedRect(tableX, y, tableW, 7, 2, 2, 'F');
     doc.setFontSize(8); doc.setFont('helvetica','bold');
     doc.setTextColor(bi===0 ? 245 : 59, bi===0 ? 158 : 130, bi===0 ? 11 : 246);
-    doc.text(`BWE No.${bi+1} - Tooth Summary`, tableX + tableW/2, y + 4.5, { align:'center' });
+    doc.text('BWE No.' + (bi+1) + ' - Tooth Summary', tableX + tableW/2, y + 4.5, { align:'center' });
 
     const rows = ['A','B','C','D','E','F','G','H'].map(tp => {
       const d = posData[tp];
@@ -1866,7 +1953,7 @@ function generateMonthlyPDF(mi, year) {
     } else {
       doc.autoTable({
         startY: y + 7,
-        head: [['Tooth','ITH','New','Weld','Bolt','Total']],
+        head: [['Tooth','ITH','New','Re-Hard Facing','Bolt','Total']],
         body: rows,
         margin: { left: tableX },
         tableWidth: tableW,
@@ -1888,46 +1975,44 @@ function generateMonthlyPDF(mi, year) {
   });
   y = Math.max(doc.lastAutoTable?.finalY || y, y) + 8;
 
-  // ========== ALL RECORDS TABLE ==========
-  if (monthRecords.length > 0) {
-    doc.setFillColor(10,14,26);
-    doc.roundedRect(margin, y, W - margin*2, 7, 2, 2, 'F');
+  // ========== SIGNATURE SECTION ==========
+  const sigReported = document.getElementById('sig-reported')?.value || '';
+  const sigChecked  = document.getElementById('sig-checked')?.value  || '';
+  const sigApproved = document.getElementById('sig-approved')?.value || '';
+
+  const curY = doc.lastAutoTable?.finalY ? doc.lastAutoTable.finalY + 12 : y + 12;
+  if (curY < 260) {
+    // Outer container
+    doc.setFillColor(26,34,53);
+    doc.roundedRect(margin, curY, W - margin*2, 46, 3, 3, 'F');
     doc.setFontSize(8); doc.setFont('helvetica','bold');
-    doc.setTextColor(245,158,11);
-    doc.text('All Maintenance Records', margin + (W-margin*2)/2, y + 4.5, { align:'center' });
-    y += 7;
+    doc.setTextColor(148,163,184);
+    doc.text('SIGNATURES', margin + 4, curY + 7);
 
-    const allRows = monthRecords.map(r => {
-      const wt = getWorkTypes(r);
-      const types = [];
-      if (wt.some(t=>t.includes('ITH'))) types.push('ITH');
-      if (wt.some(t=>t.includes('SV')))  types.push('New');
-      if (wt.includes('เชื่อมพอก'))      types.push('Weld');
-      const bolts = wt.filter(t=>t.includes('Bolt')).length;
-      if (bolts > 0) types.push(`Bolt x${bolts}`);
-      return [r.date, r.bwe, `#${r.bucket}`, `Tooth ${r.tooth}`, types.join(', '), r.smu||'-'];
-    });
-
-    doc.autoTable({
-      startY: y,
-      head: [['Date','BWE','Bucket','Tooth','Work Type','SMU']],
-      body: allRows,
-      margin: { left: margin, right: margin },
-      styles: { fontSize: 7, cellPadding: 2.2, fillColor:[17,24,39], textColor:[226,232,240], lineColor:[42,53,80], lineWidth:0.3 },
-      headStyles: { fillColor:[26,34,53], textColor:[148,163,184], fontStyle:'bold', fontSize:7 },
-      columnStyles: {
-        0: { cellWidth: 22 },
-        1: { halign:'center', cellWidth: 18, textColor:[245,158,11] },
-        2: { halign:'center', cellWidth: 16 },
-        3: { halign:'center', cellWidth: 18, fontStyle:'bold' },
-        4: { cellWidth: 60 },
-        5: { halign:'center' },
-      },
-      alternateRowStyles: { fillColor:[20,28,45] },
-      didParseCell: (data) => {
-        if (data.column.index === 1 && data.row.section === 'body') {
-          data.cell.styles.textColor = data.cell.raw === 'BWE1' ? [245,158,11] : [59,130,246];
-        }
+    const sigW = (W - margin*2 - 16) / 3;
+    const boxTop = curY + 10;
+    const boxH = 28;
+    const sigs = [
+      { label:'Reported', name: sigReported },
+      { label:'Checked',  name: sigChecked  },
+      { label:'Approved', name: sigApproved },
+    ];
+    sigs.forEach((s, i) => {
+      const sx = margin + 4 + i * (sigW + 4);
+      // White box
+      doc.setFillColor(255,255,255);
+      doc.roundedRect(sx, boxTop, sigW - 8, boxH, 2, 2, 'F');
+      doc.setDrawColor(200,200,200); doc.setLineWidth(0.3);
+      doc.roundedRect(sx, boxTop, sigW - 8, boxH, 2, 2, 'S');
+      // Label below box
+      doc.setFontSize(8); doc.setFont('helvetica','bold');
+      doc.setTextColor(245,158,11);
+      doc.text(s.label, sx + (sigW-8)/2, boxTop + boxH + 5, { align:'center' });
+      // Name inside box (if typed)
+      if (s.name) {
+        doc.setFontSize(10); doc.setFont('helvetica','normal');
+        doc.setTextColor(0,0,100);
+        doc.text(s.name, sx + (sigW-8)/2, boxTop + boxH/2 + 2, { align:'center' });
       }
     });
   }
@@ -1941,13 +2026,11 @@ function generateMonthlyPDF(mi, year) {
     doc.rect(0, fY - 4, W, 12, 'F');
     doc.setFontSize(7); doc.setTextColor(100,116,139);
     doc.text('BWE Tooth Management System', margin, fY);
-    doc.text(`Page ${p} of ${pageCount}`, W - margin, fY, { align:'right' });
-    doc.text(`Report: ${monthNameEn} ${year}`, W/2, fY, { align:'center' });
+    doc.text('Page ' + p + ' of ' + pageCount, W - margin, fY, { align:'right' });
+    doc.text('Report: ' + monthNameEn + ' ' + year, W/2, fY, { align:'center' });
   }
 
-  const filename = `BWE_Report_${monthNameEn}_${year}.pdf`;
-  doc.save(filename);
-  toast(`✅ ดาวน์โหลด ${filename} สำเร็จ`, 'success');
+  doc.save('BWE_Report_' + monthNameEn + '_' + year + '.pdf');
 }
 
 // ===================== DASHBOARD =====================
@@ -2044,6 +2127,276 @@ function renderDashboard() {
       <span style="font-size:13px;color:var(--text2)">${it.label}</span>
       <span style="font-size:22px;font-weight:700;font-family:JetBrains Mono,monospace;color:${(balance[it.key]||0)<5?'var(--danger)':it.c}">${balance[it.key]||0}</span>
     </div>`).join('');
+}
+
+
+// ===================== YEARLY =====================
+function renderYearly() {
+  const year = parseInt(document.getElementById('yearly-year')?.value || 2026);
+  const yearRecords = records.filter(r => new Date(r.date).getFullYear() === year);
+
+  const totalWork = yearRecords.length;
+  const cntITH  = yearRecords.filter(r => getWorkTypes(r).some(t => t.includes('ITH'))).length;
+  const cntNew  = yearRecords.filter(r => getWorkTypes(r).some(t => t.includes('SV'))).length;
+  const cntWeld = yearRecords.filter(r => getWorkTypes(r).includes('เชื่อมพอก')).length;
+  const cntBolt = yearRecords.filter(r => getWorkTypes(r).some(t => t.includes('Bolt'))).length;
+  const cntBWE1 = yearRecords.filter(r => r.bwe === 'BWE1').length;
+  const cntBWE2 = yearRecords.filter(r => r.bwe === 'BWE2').length;
+
+  // ---- STAT CARDS ----
+  const stats = document.getElementById('yearly-stats');
+  if (stats) {
+    stats.innerHTML = [
+      { label: 'รวมงานซ่อมทั้งปี', val: totalWork,  c: 'c-amber' },
+      { label: 'BWE No.1',          val: cntBWE1,    c: 'c-amber' },
+      { label: 'BWE No.2',          val: cntBWE2,    c: 'c-blue'  },
+      { label: 'เปลี่ยนฟัน ITH',   val: cntITH,     c: 'c-blue'  },
+      { label: 'เปลี่ยนฟันใหม่',   val: cntNew,     c: 'c-green' },
+      { label: 'Re-Hard Facing',    val: cntWeld,    c: 'c-orange'},
+      { label: 'เปลี่ยน Bolt',      val: cntBolt,    c: 'c-purple'},
+    ].map(s => `<div class="stat-card"><div class="stat-label">${s.label}</div><div class="stat-value ${s.c}">${s.val}</div></div>`).join('');
+  }
+
+  // ---- MONTHLY BREAKDOWN TABLE ----
+  const tbody = document.getElementById('yearly-month-tbody');
+  if (tbody) {
+    const rows = MONTHS_FULL.map((mName, mi) => {
+      const mr = yearRecords.filter(r => new Date(r.date).getMonth() === mi);
+      if (mr.length === 0) return `<tr style="opacity:0.4"><td>${mName}</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>`;
+      const ith  = mr.filter(r => getWorkTypes(r).some(t => t.includes('ITH'))).length;
+      const sv   = mr.filter(r => getWorkTypes(r).some(t => t.includes('SV'))).length;
+      const weld = mr.filter(r => getWorkTypes(r).includes('เชื่อมพอก')).length;
+      const bolt = mr.filter(r => getWorkTypes(r).some(t => t.includes('Bolt'))).length;
+      const bw1  = mr.filter(r => r.bwe === 'BWE1').length;
+      const bw2  = mr.filter(r => r.bwe === 'BWE2').length;
+      return `<tr>
+        <td style="font-weight:600;color:var(--accent)">${mName}</td>
+        <td style="font-weight:700">${mr.length}</td>
+        <td style="color:var(--ith)">${ith||'-'}</td>
+        <td style="color:var(--sv)">${sv||'-'}</td>
+        <td style="color:var(--weld)">${weld||'-'}</td>
+        <td style="color:var(--bolt)">${bolt||'-'}</td>
+        <td>${bw1||'-'}</td>
+        <td>${bw2||'-'}</td>
+      </tr>`;
+    });
+    // Total row
+    rows.push(`<tr style="border-top:2px solid var(--accent);font-weight:700;background:var(--bg3)">
+      <td style="color:var(--accent)">รวมทั้งปี</td>
+      <td style="color:var(--accent)">${totalWork}</td>
+      <td style="color:var(--ith)">${cntITH}</td>
+      <td style="color:var(--sv)">${cntNew}</td>
+      <td style="color:var(--weld)">${cntWeld}</td>
+      <td style="color:var(--bolt)">${cntBolt}</td>
+      <td>${cntBWE1}</td>
+      <td>${cntBWE2}</td>
+    </tr>`);
+    tbody.innerHTML = rows.join('');
+  }
+
+  // ---- POSITION PRODUCTION (type=in, tooth items) ----
+  const posIn = { A:0, B:0, C:0, D:0 };
+  const posInITH = { A:0, B:0, C:0, D:0 };
+  const posInNew = { A:0, B:0, C:0, D:0 };
+  stockTx.forEach(t => {
+    if (t.type !== 'in') return;
+    if (!['tooth_ith','tooth_sv'].includes(t.item)) return;
+    if (new Date(t.date).getFullYear() !== year) return;
+    const p = t.toothPos;
+    if (!posIn.hasOwnProperty(p)) return;
+    posIn[p]    += Number(t.qty);
+    if (t.item === 'tooth_ith') posInITH[p] += Number(t.qty);
+    else                         posInNew[p] += Number(t.qty);
+  });
+
+  const posCards = document.getElementById('yearly-pos-cards');
+  if (posCards) {
+    const totalIn = Object.values(posIn).reduce((a,b) => a+b, 0);
+    posCards.innerHTML = ['A','B','C','D'].map(p => {
+      const total = posIn[p];
+      const ith   = posInITH[p];
+      const sv    = posInNew[p];
+      const pct   = totalIn ? Math.round(total/totalIn*100) : 0;
+      return `<div style="flex:1;min-width:140px;padding:16px;background:var(--bg3);border-radius:10px;border:1.5px solid var(--border);text-align:center">
+        <div style="font-size:32px;font-weight:700;color:var(--accent);line-height:1">${p}</div>
+        <div style="font-size:26px;font-weight:700;color:var(--text);margin:6px 0">${total}</div>
+        <div style="font-size:10px;color:var(--text3);margin-bottom:8px">ชิ้น (${pct}%)</div>
+        <div style="display:flex;justify-content:space-around;border-top:1px solid var(--border);padding-top:8px">
+          <div style="text-align:center">
+            <div style="font-size:9px;color:var(--ith);font-weight:600">ITH</div>
+            <div style="font-size:14px;font-weight:700;color:var(--ith)">${ith}</div>
+          </div>
+          <div style="width:1px;background:var(--border)"></div>
+          <div style="text-align:center">
+            <div style="font-size:9px;color:var(--sv);font-weight:600">New</div>
+            <div style="font-size:14px;font-weight:700;color:var(--sv)">${sv}</div>
+          </div>
+        </div>
+        <div style="height:4px;background:var(--bg);border-radius:2px;margin-top:10px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:var(--accent);border-radius:2px;transition:width 0.4s"></div>
+        </div>
+      </div>`;
+    }).join('') + `<div style="flex:1;min-width:140px;padding:16px;background:var(--bg3);border-radius:10px;border:1.5px solid var(--accent);text-align:center;display:flex;flex-direction:column;justify-content:center">
+        <div style="font-size:11px;color:var(--text3);margin-bottom:4px">รวมทั้งปี</div>
+        <div style="font-size:32px;font-weight:700;color:var(--accent)">${totalIn}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:4px">ชิ้น</div>
+        <div style="margin-top:10px;font-size:10px;color:var(--ith)">ITH: ${Object.values(posInITH).reduce((a,b)=>a+b,0)}</div>
+        <div style="font-size:10px;color:var(--sv)">New: ${Object.values(posInNew).reduce((a,b)=>a+b,0)}</div>
+      </div>`;
+  }
+
+  // ---- BAR CHART ----
+  const chart = document.getElementById('yearly-chart');
+  if (chart) {
+    const monthCounts = MONTHS_FULL.map((_, mi) =>
+      yearRecords.filter(r => new Date(r.date).getMonth() === mi).length
+    );
+    const maxVal = Math.max(...monthCounts, 1);
+    chart.innerHTML = monthCounts.map((cnt, mi) => {
+      const pct = (cnt / maxVal * 100).toFixed(0);
+      const short = ['ม.ค','ก.พ','มี.ค','เม.ย','พ.ค','มิ.ย','ก.ค','ส.ค','ก.ย','ต.ค','พ.ย','ธ.ค'][mi];
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px">
+        <div style="font-size:9px;color:var(--accent);font-weight:600">${cnt||''}</div>
+        <div style="width:100%;background:var(--bg3);border-radius:3px 3px 0 0;height:${pct}%;min-height:${cnt?'4px':'0'};background:${cnt?'var(--accent)':'var(--bg3)'};transition:height 0.4s"></div>
+        <div style="font-size:8px;color:var(--text3)">${short}</div>
+      </div>`;
+    }).join('');
+  }
+}
+
+function exportYearly() {
+  const year = parseInt(document.getElementById('yearly-year')?.value || 2026);
+  generateYearlyPDF(year);
+}
+
+function generateYearlyPDF(year) {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+  const W = 210, margin = 14;
+  let y = 0;
+
+  const yearRecords = records.filter(r => new Date(r.date).getFullYear() === year);
+  const cntITH  = yearRecords.filter(r => getWorkTypes(r).some(t => t.includes('ITH'))).length;
+  const cntNew  = yearRecords.filter(r => getWorkTypes(r).some(t => t.includes('SV'))).length;
+  const cntWeld = yearRecords.filter(r => getWorkTypes(r).includes('เชื่อมพอก')).length;
+  const cntBolt = yearRecords.filter(r => getWorkTypes(r).some(t => t.includes('Bolt'))).length;
+  const cntBWE1 = yearRecords.filter(r => r.bwe === 'BWE1').length;
+  const cntBWE2 = yearRecords.filter(r => r.bwe === 'BWE2').length;
+
+  const LOGO_B64_Y = typeof LOGO_B64 !== 'undefined' ? LOGO_B64 : null;
+
+  // ========== HEADER ==========
+  doc.setFillColor(10,14,26);
+  doc.rect(0, 0, W, 32, 'F');
+  doc.setFillColor(245,158,11);
+  doc.rect(0, 32, W, 1.5, 'F');
+
+  try { if (LOGO_B64_Y) doc.addImage('data:image/png;base64,' + LOGO_B64_Y, 'PNG', margin, 4, 38, 24); } catch(e) {}
+
+  doc.setTextColor(245,158,11);
+  doc.setFontSize(14); doc.setFont('helvetica','bold');
+  doc.text('BWE Tooth Management System', margin + 42, 12);
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.setTextColor(148,163,184);
+  doc.text('Bucket Wheel Excavator - Annual Maintenance Report', margin + 42, 19);
+
+  doc.setFontSize(15); doc.setFont('helvetica','bold');
+  doc.setTextColor(255,255,255);
+  doc.text('YEAR ' + year, W - margin, 13, { align:'right' });
+  doc.setFontSize(8); doc.setFont('helvetica','normal');
+  doc.setTextColor(148,163,184);
+  doc.text('Generated: ' + new Date().toLocaleDateString('en-GB'), W - margin, 20, { align:'right' });
+  y = 40;
+
+  // ========== STAT BOXES ==========
+  const stats = [
+    { label:'Total Records', val: yearRecords.length, color:[245,158,11] },
+    { label:'BWE No.1',      val: cntBWE1,            color:[245,158,11] },
+    { label:'BWE No.2',      val: cntBWE2,            color:[59,130,246] },
+    { label:'Replace ITH',   val: cntITH,             color:[59,130,246] },
+    { label:'Replace New',   val: cntNew,             color:[16,185,129] },
+    { label:'Re-Hard Facing',val: cntWeld,            color:[249,115,22] },
+    { label:'Replace Bolt',  val: cntBolt,            color:[167,139,250] },
+  ];
+  const boxW = (W - margin*2 - 6*3) / 7;
+  stats.forEach((s, i) => {
+    const x = margin + i * (boxW + 3);
+    doc.setFillColor(26,34,53);
+    doc.roundedRect(x, y, boxW, 16, 2, 2, 'F');
+    doc.setDrawColor(...s.color); doc.setLineWidth(0.4);
+    doc.roundedRect(x, y, boxW, 16, 2, 2, 'S');
+    doc.setFontSize(14); doc.setFont('helvetica','bold');
+    doc.setTextColor(...s.color);
+    doc.text(String(s.val), x + boxW/2, y + 8.5, { align:'center' });
+    doc.setFontSize(5.5); doc.setFont('helvetica','normal');
+    doc.setTextColor(148,163,184);
+    doc.text(s.label, x + boxW/2, y + 13.5, { align:'center' });
+  });
+  y += 22;
+
+  // ========== MONTHLY BREAKDOWN TABLE ==========
+  doc.setFillColor(10,14,26);
+  doc.roundedRect(margin, y, W - margin*2, 7, 2, 2, 'F');
+  doc.setFontSize(8); doc.setFont('helvetica','bold');
+  doc.setTextColor(245,158,11);
+  doc.text('Monthly Breakdown — ' + year, (W)/2, y + 4.5, { align:'center' });
+  y += 7;
+
+  const monthRows = ['January','February','March','April','May','June','July','August','September','October','November','December'].map((mName, mi) => {
+    const mr = yearRecords.filter(r => new Date(r.date).getMonth() === mi);
+    const ith  = mr.filter(r => getWorkTypes(r).some(t => t.includes('ITH'))).length;
+    const sv   = mr.filter(r => getWorkTypes(r).some(t => t.includes('SV'))).length;
+    const weld = mr.filter(r => getWorkTypes(r).includes('เชื่อมพอก')).length;
+    const bolt = mr.filter(r => getWorkTypes(r).some(t => t.includes('Bolt'))).length;
+    const bw1  = mr.filter(r => r.bwe === 'BWE1').length;
+    const bw2  = mr.filter(r => r.bwe === 'BWE2').length;
+    return [mName, mr.length||'-', ith||'-', sv||'-', weld||'-', bolt||'-', bw1||'-', bw2||'-'];
+  });
+  monthRows.push(['TOTAL', yearRecords.length, cntITH, cntNew, cntWeld, cntBolt, cntBWE1, cntBWE2]);
+
+  doc.autoTable({
+    startY: y,
+    head: [['Month','Total','ITH','New','Re-Hard Facing','Bolt','BWE1','BWE2']],
+    body: monthRows,
+    margin: { left: margin, right: margin },
+    styles: { fontSize: 7.5, cellPadding: 2.5, fillColor:[17,24,39], textColor:[226,232,240], lineColor:[42,53,80], lineWidth:0.3 },
+    headStyles: { fillColor:[26,34,53], textColor:[148,163,184], fontStyle:'bold', fontSize:7 },
+    columnStyles: {
+      0: { fontStyle:'bold', textColor:[245,158,11] },
+      1: { halign:'center', fontStyle:'bold' },
+      2: { halign:'center', textColor:[59,130,246] },
+      3: { halign:'center', textColor:[16,185,129] },
+      4: { halign:'center', textColor:[249,115,22] },
+      5: { halign:'center', textColor:[167,139,250] },
+      6: { halign:'center', textColor:[245,158,11] },
+      7: { halign:'center', textColor:[59,130,246] },
+    },
+    alternateRowStyles: { fillColor:[20,28,45] },
+    didParseCell: (data) => {
+      if (data.row.index === 12) {
+        data.cell.styles.fillColor = [26,34,53];
+        data.cell.styles.fontStyle = 'bold';
+        data.cell.styles.textColor = [245,158,11];
+      }
+    }
+  });
+  y = (doc.lastAutoTable?.finalY || y) + 8;
+
+  // ========== FOOTER ==========
+  const pageCount = doc.internal.getNumberOfPages();
+  for (let p = 1; p <= pageCount; p++) {
+    doc.setPage(p);
+    const fY = 297 - 8;
+    doc.setFillColor(10,14,26);
+    doc.rect(0, fY - 4, W, 12, 'F');
+    doc.setFontSize(7); doc.setTextColor(100,116,139);
+    doc.text('BWE Tooth Management System', margin, fY);
+    doc.text('Page ' + p + ' / ' + pageCount, W - margin, fY, { align:'right' });
+    doc.text('Annual Report: ' + year, W/2, fY, { align:'center' });
+  }
+
+  doc.save('BWE_Annual_Report_' + year + '.pdf');
+  toast('✅ ดาวน์โหลด BWE_Annual_Report_' + year + '.pdf สำเร็จ', 'success');
 }
 
 // ===================== INIT =====================
