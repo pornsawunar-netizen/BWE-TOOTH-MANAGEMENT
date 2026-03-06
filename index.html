@@ -1165,29 +1165,45 @@ const INSTALL_TO_STOCK_TAG = {
 
 async function autoDeductStock(rec) {
   const wt = getWorkTypes(rec);
-  const hasITH = wt.some(t => t.includes('ITH'));
-  const hasNew  = wt.some(t => t.includes('SV'));
-  if (!hasITH && !hasNew) return; // ตัดเฉพาะรายการเปลี่ยนฟัน
+  const hasITH  = wt.some(t => t.includes('ITH'));
+  const hasNew   = wt.some(t => t.includes('SV'));
+  const boltQty  = wt.filter(t => t.includes('Bolt')).length; // นับจำนวน EA
 
   const installPos = rec.tooth; // ตำแหน่งที่ติดตั้ง A-H
   const stockTag = INSTALL_TO_STOCK_TAG[installPos];
-  if (!stockTag) return; // ตำแหน่งนี้ไม่มี mapping
 
-  const item = hasITH ? 'tooth_ith' : 'tooth_sv';
-  const itemLabel = hasITH ? 'ฟัน ITH' : 'ฟัน New';
+  // ตัดฟัน ITH หรือ New
+  if ((hasITH || hasNew) && stockTag) {
+    const item = hasITH ? 'tooth_ith' : 'tooth_sv';
+    const itemLabel = hasITH ? 'ฟัน ITH' : 'ฟัน New';
+    const tx = {
+      id: Date.now() + 900,
+      date: rec.date,
+      type: 'out',
+      item,
+      qty: 1,
+      note: `ตัดยอดอัตโนมัติ: ติดตั้ง${itemLabel}ตำแหน่ง ${installPos} → ตัดสต็อก tag ${stockTag}`,
+      toothPos: stockTag,
+      autoDeduct: true,
+    };
+    await api('addStock', { data: tx });
+    stockTx.unshift(tx);
+  }
 
-  const tx = {
-    id: Date.now() + 900,
-    date: rec.date,
-    type: 'out',
-    item,
-    qty: 1,
-    note: `ตัดยอดอัตโนมัติ: ติดตั้ง${itemLabel}ตำแหน่ง ${installPos} → ตัดสต็อก tag ${stockTag}`,
-    toothPos: stockTag,
-    autoDeduct: true,
-  };
-  await api('addStock', { data: tx });
-  stockTx.unshift(tx);
+  // ตัด Bolt ตามจำนวน EA ที่บันทึก
+  if (boltQty > 0) {
+    const boltTx = {
+      id: Date.now() + 901,
+      date: rec.date,
+      type: 'out',
+      item: 'bolt',
+      qty: boltQty,
+      note: `ตัดยอดอัตโนมัติ: เปลี่ยน Bolt ${boltQty} EA ตำแหน่ง ${installPos}`,
+      autoDeduct: true,
+    };
+    await api('addStock', { data: boltTx });
+    stockTx.unshift(boltTx);
+  }
 }
 
 function clearRecordForm() {
