@@ -1638,7 +1638,7 @@ function showMonthDetail(mi, year) {
   const posBreakdown = (itemKey, itemColor) => ['A','B','C','D'].map(p => {
     const val = balPos[p][itemKey] || 0;
     return `<div style="display:flex;align-items:center;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--border)">
-      <span style="font-size:10px;font-weight:700;color:${posColorsMap[p]};width:18px">Pos ${p}</span>
+      <span style="font-size:10px;font-weight:700;color:${posColorsMap[p]};width:18px">Type ${p}</span>
       <span style="font-size:13px;font-weight:700;font-family:JetBrains Mono,monospace;color:${val<3?'var(--danger)':itemColor}">${val}</span>
     </div>`;
   }).join('');
