@@ -1996,7 +1996,7 @@ function generateMonthlyPDF(mi, year) {
     doc.roundedRect(px, y + 20, posColW2, 9, 1, 1, 'F');
     doc.setFontSize(5.5); doc.setFont('helvetica','bold');
     doc.setTextColor(245,158,11);
-    doc.text('Pos '+p, px + posColW2/2, y + 24, { align:'center' });
+    doc.text('Type '+p, px + posColW2/2, y + 24, { align:'center' });
     doc.setFontSize(7.5); doc.setFont('helvetica','bold');
     doc.setTextColor(pLow?239:59, pLow?68:130, pLow?68:246);
     doc.text(String(pv), px + posColW2/2, y + 28, { align:'center' });
@@ -2027,7 +2027,7 @@ function generateMonthlyPDF(mi, year) {
     doc.roundedRect(px, y + 20, posColW2, 9, 1, 1, 'F');
     doc.setFontSize(5.5); doc.setFont('helvetica','bold');
     doc.setTextColor(245,158,11);
-    doc.text('Pos '+p, px + posColW2/2, y + 24, { align:'center' });
+    doc.text('Type '+p, px + posColW2/2, y + 24, { align:'center' });
     doc.setFontSize(7.5); doc.setFont('helvetica','bold');
     doc.setTextColor(pLow?239:16, pLow?68:185, pLow?68:129);
     doc.text(String(pv), px + posColW2/2, y + 28, { align:'center' });
